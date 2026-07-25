@@ -1,0 +1,35 @@
+.pageHeader {
+  margin-bottom: 2rem;
+}
+
+.pageTitle {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.pageDescription {
+  color: var(--text-secondary);
+}
+
+.analyticsGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .analyticsGrid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.chartTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.responsiveContainer {
+  width: 100%;
+  height: 300px;
+}

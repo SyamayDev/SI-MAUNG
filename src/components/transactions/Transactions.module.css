@@ -1,0 +1,45 @@
+.transactionCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+}
+
+.details {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--surface-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.info .description {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.info .category {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.amount {
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
+.income {
+  color: var(--income);
+}
+.expense {
+  color: var(--expense);
+}

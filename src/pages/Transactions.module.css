@@ -1,0 +1,30 @@
+.pageHeader {
+  margin-bottom: 2rem;
+}
+
+.pageTitle {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.pageDescription {
+  color: var(--text-secondary);
+}
+
+.transactionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.transactionList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
