@@ -15,7 +15,7 @@ const FinancialStats = () => {
           <div className={`${styles.statIcon} ${styles.income}`}>
             <ArrowDown size={20} />
           </div>
-          <span className={styles.statTitle}>Income</span>
+          <span className={styles.statTitle}>Pemasukan</span>
         </div>
         <p className={styles.statAmount}>{formatCurrency(totalIncome)}</p>
       </div>
@@ -25,7 +25,7 @@ const FinancialStats = () => {
           <div className={`${styles.statIcon} ${styles.expense}`}>
             <ArrowUp size={20} />
           </div>
-          <span className={styles.statTitle}>Expense</span>
+          <span className={styles.statTitle}>Pengeluaran</span>
         </div>
         <p className={styles.statAmount}>{formatCurrency(totalExpense)}</p>
       </div>

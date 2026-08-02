@@ -11,11 +11,11 @@ const RecentTransactions = () => {
 
   return (
     <Card>
-      <h3 className={styles.cardTitle}>Recent Transactions</h3>
+      <h3 className={styles.cardTitle}>Transaksi Terkini</h3>
       {loading ? (
-        <p>Loading...</p>
+        <p>Memuat...</p>
       ) : recentTransactions.length === 0 ? (
-        <p className={styles.emptyState}>No transactions yet.</p>
+        <p className={styles.emptyState}>Belum ada transaksi.</p>
       ) : (
         <div className={styles.transactionList}>
           {recentTransactions.map((tx) => (

@@ -1,47 +1,31 @@
 import { useState } from "react";
-import { useAIChat } from "../../hooks/useAIChat";
+import Button from '../ui/Button';
+import styles from './AI.module.css';
 
-function ChatInput({ onParsed, onError }) {
+function ChatInput({ onSendMessage, disabled }) {
   const [text, setText] = useState("");
-  const { parseTransaction } = useAIChat();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!text.trim()) return;
-    try {
-      const parsed = await parseTransaction(text.trim());
-      if (!parsed) {
-        onError && onError("Gagal mem-parsing teks.");
-        return;
-      }
-      onParsed && onParsed(parsed);
-      setText("");
-    } catch (err) {
-      onError && onError("Terjadi kesalahan parsing.");
-    }
+    onSendMessage(text);
+    setText("");
   };
 
   return (
-    <form className="ai-chat-input" onSubmit={handleSubmit} style={{ marginTop: 16 }}>
+    <form className={styles.chatInputForm} onSubmit={handleSubmit}>
       <textarea
-        placeholder="Ketik transaksi natural, contoh: 'Beli kopi 25.000 kemarin, kategori makanan'"
+        className={styles.chatTextarea}
+        placeholder="Ketik pesan atau transaksi di sini... cth: 'Beli kopi 25rb'"
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={3}
-        style={{
-          width: "100%",
-          padding: 14,
-          borderRadius: 16,
-          border: "1px solid #e4e6ed",
-          resize: "vertical",
-          minHeight: 120,
-          fontSize: "0.95rem",
-        }}
+        disabled={disabled}
       />
-      <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}>
-        <button className="button-secondary" type="submit">
-          Parse
-        </button>
+      <div className={styles.chatInputActions}>
+        <Button type="submit" disabled={disabled || !text.trim()}>
+          Send
+        </Button>
       </div>
     </form>
   );

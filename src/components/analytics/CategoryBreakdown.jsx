@@ -1,60 +1,78 @@
 import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useFinance } from '../../context/FinanceContext';
+import { formatCurrency } from '../../utils/formatCurrency';
+import LoadingSpinner from '../ui/LoadingSpinner';
+import EmptyState from '../ui/EmptyState';
 import styles from '../../pages/Analytics.module.css';
-
-const COLORS = ['#0F766E', '#16A34A', '#D97706', '#E11D48', '#7C3AED', '#2563EB', '#DB2777'];
+import { transactionCategories } from '../../lib/constants';
 
 const CategoryBreakdown = () => {
-  const { transactions } = useFinance();
+  const { transactions, loading } = useFinance();
+
+  const categoryColors = useMemo(() => {
+    const colorMap = {};
+    transactionCategories.forEach(cat => {
+      colorMap[cat.value] = cat.color;
+    });
+    return colorMap;
+  }, []);
 
   const data = useMemo(() => {
-    const categoryData = {};
+    if (loading || !transactions) {
+      return [];
+    }
 
+    const categoryData = {};
     transactions
       .filter(tx => tx.type === 'expense')
       .forEach(tx => {
-        const category = tx.category || 'Other';
+        const category = tx.category || 'other';
         if (!categoryData[category]) {
-          categoryData[category] = { name: category, value: 0 };
+          categoryData[category] = { name: tx.category_name || category, value: 0 };
         }
         categoryData[category].value += tx.amount;
       });
 
-    return Object.values(categoryData);
-  }, [transactions]);
+    return Object.values(categoryData).sort((a,b) => b.value - a.value);
+  }, [transactions, loading]);
   
+  if (loading) {
+    return <div className={styles.chartLoading}><LoadingSpinner message="Menghitung..." /></div>;
+  }
+
   if (data.length === 0) {
     return (
-      <>
-        <h3 className={styles.chartTitle}>Expense by Category</h3>
-        <p style={{textAlign: 'center', color: 'var(--text-muted)', paddingTop: '4rem'}}>No expense data to display.</p>
-      </>
-    )
+      <EmptyState 
+        image="empty-state-analytics.webp"
+        title="Tidak Ada Data Pengeluaran"
+        message="Tambahkan beberapa transaksi pengeluaran untuk melihat rincian berdasarkan kategori."
+      />
+    );
   }
 
   return (
     <>
-      <h3 className={styles.chartTitle}>Expense by Category</h3>
+      <h3 className={styles.chartTitle}>Pengeluaran per Kategori</h3>
       <div className={styles.responsiveContainer}>
-        <ResponsiveContainer>
+        <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
               labelLine={false}
-              outerRadius={80}
+              outerRadius={100}
               fill="#8884d8"
               dataKey="value"
               nameKey="name"
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${index}`} fill={categoryColors[entry.name.toLowerCase()] || '#8884d8'} />
               ))}
             </Pie>
-            <Tooltip formatter={(value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(value)} />
-            <Legend wrapperStyle={{ fontSize: '14px' }}/>
+            <Tooltip formatter={(value) => formatCurrency(value)} />
+            <Legend wrapperStyle={{ fontSize: '14px', paddingTop: '20px' }} />
           </PieChart>
         </ResponsiveContainer>
       </div>

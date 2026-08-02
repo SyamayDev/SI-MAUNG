@@ -2,7 +2,7 @@
 import { useAuth } from '../context/AuthContext';
 import { useFinance } from '../context/FinanceContext';
 import { useModal } from '../context/ModalContext';
-import { Mic } from 'lucide-react';
+import { Mic, Plus, Minus } from 'lucide-react';
 import { formatCurrency } from '../utils/formatCurrency';
 import styles from './Dashboard.module.css';
 
@@ -14,77 +14,82 @@ import Button from '../components/ui/Button';
 function Dashboard() {
   const { profile } = useAuth();
   const { balance, totalIncome, totalExpense, loading } = useFinance();
-  const { openVoiceModal } = useModal();
+  const { openModal } = useModal();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return 'Selamat Pagi';
+    if (hour < 18) return 'Selamat Siang';
+    return 'Selamat Malam';
+  };
+  
+  const openVoiceModal = () => {
+    openModal('voiceTransaction');
+  }
+
+  const openAddTransactionModal = (type) => {
+    openModal('addTransaction', { type });
   };
 
+
   return (
-    <div className={styles.dashboardGrid}>
+    <div className={styles.dashboardContainer}>
       <header className={styles.header}>
-        <div>
-          <p className={styles.dashboardSubtitle}>{getGreeting()}, {profile?.full_name?.split(' ')[0] || 'MoneyTalk'}!</p>
-          <h1>Dashboard</h1>
-          <p className={styles.dashboardDescription}>Simplify your money tracking with smart voice and AI-powered insights.</p>
-        </div>
+        <p className={styles.greeting}>{getGreeting()}, {profile?.full_name?.split(' ')[0] || 'Tamu'}!</p>
+        <h1 className={styles.pageTitle}>Pusat Keuangan Anda</h1>
       </header>
 
-      <section className={styles.heroSection}>
-        <div className={styles.heroWalletCard}>
-          <div className={styles.walletBadge}>MoneyTalk Wallet</div>
-          <div className={styles.walletAmount}>{formatCurrency(balance)}</div>
-          <p className={styles.walletSubtitle}>Saldo tersedia berdasarkan transaksi terbaru.</p>
-
-          <div className={styles.walletSummaryGrid}>
-            <div className={styles.walletSummaryItem}>
-              <span>Income</span>
-              <strong>{formatCurrency(totalIncome)}</strong>
-            </div>
-            <div className={styles.walletSummaryItem}>
-              <span>Expense</span>
-              <strong>{formatCurrency(totalExpense)}</strong>
-            </div>
-          </div>
+      <section className={styles.mainActionSection}>
+        <div className={styles.balanceDisplay}>
+          <p className={styles.balanceLabel}>Saldo Total</p>
+          <h2 className={styles.balanceAmount}>{formatCurrency(balance)}</h2>
         </div>
 
-        <div className={styles.heroActionCard}>
-          <div className={styles.actionDial} onClick={openVoiceModal} role="button" tabIndex={0}>
-            <div className={styles.actionInner}>
-              <Mic size={28} />
-            </div>
-          </div>
-          <div className={styles.actionMeta}>
-            <h2>Talk to MoneyTalk</h2>
-            <p>Tekan tombol mikrofon untuk merekam pemasukan atau pengeluaran secara cepat.</p>
-          </div>
-          <div className={styles.actionButtonGroup}>
-            <Button variant="secondary" size="md" onClick={openVoiceModal}>
-              Add Income
-            </Button>
-            <Button variant="secondary" size="md" onClick={openVoiceModal}>
-              Add Expense
-            </Button>
-          </div>
+        <div className={styles.voiceActionButton} onClick={openVoiceModal} role="button" tabIndex={0} aria-label="Bicara dengan SI MAUNG">
+          <Mic size={40} />
+        </div>
+
+        <div className={styles.quickActions}>
+          <Button 
+            variant="secondary" 
+            size="lg" 
+            onClick={() => openAddTransactionModal('income')}
+            className={styles.actionButton}
+          >
+            <Plus size={20} />
+            Tambah Pemasukan
+          </Button>
+          <Button 
+            variant="secondary" 
+            size="lg" 
+            onClick={() => openAddTransactionModal('expense')}
+            className={styles.actionButton}
+          >
+            <Minus size={20} />
+            Tambah Pengeluaran
+          </Button>
         </div>
       </section>
 
-      <div className={styles.financialStats}>
-        <FinancialStats />
+      <div className={styles.dashboardGrid}>
+        <div className={styles.financialStats}>
+          <FinancialStats />
+        </div>
+
+        <div className={styles.recentTransactions}>
+          <RecentTransactions />
+        </div>
+
+        <div className={styles.aiInsight}>
+          <AIInsightCard />
+        </div>
       </div>
 
-      <div className={styles.recentTransactions}>
-        <RecentTransactions />
-      </div>
-
-      <div className={styles.aiInsight}>
-        <AIInsightCard />
-      </div>
-
-      {loading && <div className="loading-overlay">Loading data...</div>}
+      {loading && (
+        <div className="loading-overlay">
+          <div className="spinning-coin"></div>
+        </div>
+      )}
     </div>
   );
 }

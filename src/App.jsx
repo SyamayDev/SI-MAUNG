@@ -14,6 +14,8 @@ import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/layouts/ProtectedRoute";
 import PageContainer from "./components/layouts/PageContainer";
 
+import Onboarding from "./pages/Onboarding";
+
 function App() {
   return (
     <BrowserRouter>
@@ -25,7 +27,17 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Protected Routes */}
+        {/* Onboarding Route */}
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute>
+              <Onboarding />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Protected Routes with Main Layout */}
         <Route
           path="/"
           element={
@@ -34,7 +46,6 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="transactions" element={<Transactions />} />
           <Route path="ai" element={<AIChatPage />} />

@@ -1,36 +1,30 @@
+import React, { useEffect, useRef } from 'react';
 import ChatMessage from "./ChatMessage";
+import AIThinking from "./AIThinking";
+import styles from './AI.module.css';
 
-function AIChat({ parsedTx, onClear }) {
+function AIChat({ messages, isThinking }) {
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isThinking]);
+
   return (
-    <div style={{ marginTop: 8 }}>
-      <div style={{ marginBottom: 12 }}>
-        <h3>Riwayat Chat</h3>
-      </div>
-
-      {parsedTx ? (
-        <div
-          style={{
-            background: "#fff",
-            padding: 12,
-            borderRadius: 12,
-            border: "1px solid #eee",
-          }}
-        >
-          <ChatMessage
-            role="assistant"
-            text={`Parsed: ${parsedTx.description} — Rp${parsedTx.amount}`}
-          />
-          <div style={{ marginTop: 8 }}>
-            <button className="button-secondary" onClick={onClear}>
-              Clear
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="empty-state">
+    <div className={styles.aiChatContainer}>
+      {messages.length === 0 && !isThinking ? (
+        <div className="empty-state" style={{margin: 'auto'}}>
           <p>Belum ada interaksi AI. Ketik atau rekam suara untuk mencoba.</p>
         </div>
+      ) : (
+        <>
+          {messages.map((msg) => (
+            <ChatMessage key={msg.id} message={msg} />
+          ))}
+          {isThinking && <AIThinking />}
+        </>
       )}
+      <div ref={chatEndRef} />
     </div>
   );
 }

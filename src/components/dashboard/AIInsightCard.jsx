@@ -10,9 +10,9 @@ const AIInsightCard = () => {
         <Lightbulb size={24} />
       </div>
       <div className={styles.aiContent}>
-        <h3 className={styles.cardTitle}>AI Insight</h3>
+        <h3 className={styles.cardTitle}>Wawasan AI</h3>
         <p className={styles.aiText}>
-          Your spending on 'Food' is 15% higher this week.
+          Pengeluaran Anda untuk 'Makanan' 15% lebih tinggi minggu ini.
         </p>
       </div>
     </Card>

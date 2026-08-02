@@ -1,0 +1,38 @@
+.emptyStateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1rem;
+  background-color: var(--surface-soft);
+  border-radius: 24px;
+  border: 1px dashed var(--border);
+  margin: 1rem 0;
+}
+
+.emptyStateImage {
+  max-width: 180px;
+  height: auto;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.emptyStateTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.emptyStateMessage {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  max-width: 400px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.emptyStateAction {
+  margin-top: 2rem;
+}

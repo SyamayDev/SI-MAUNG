@@ -1,4 +1,5 @@
-import { transactionCategories, guessCategoryFromText } from "../utils/categoryUtils.jsx";
+import { guessCategoryFromText } from "../utils/categoryUtils.jsx";
+import { transactionCategories } from "../lib/constants.js";
 import { parseDateLike } from "../utils/dateUtils";
 
 async function parseWithOpenAI(text) {

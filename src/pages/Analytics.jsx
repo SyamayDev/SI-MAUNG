@@ -9,9 +9,9 @@ function Analytics() {
     <div>
       <header className={styles.pageHeader}>
         <div>
-          <h1 className={styles.pageTitle}>Analytics</h1>
+          <h1 className={styles.pageTitle}>Analitik</h1>
           <p className={styles.pageDescription}>
-            Visualize your financial habits and trends.
+            Visualisasikan kebiasaan dan tren keuangan Anda.
           </p>
         </div>
       </header>

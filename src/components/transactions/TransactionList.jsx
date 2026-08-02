@@ -1,14 +1,20 @@
 import React from 'react';
 import TransactionCard from './TransactionCard';
-import styles from '../../pages/Transactions.module.css';
+import styles from './Transactions.module.css';
+import EmptyState from '../ui/EmptyState';
+import LoadingSpinner from '../ui/LoadingSpinner';
 
 const TransactionList = ({ transactions, loading }) => {
   if (loading) {
-    return <p>Loading transactions...</p>;
+    return <div style={{ display: 'grid', placeItems: 'center', minHeight: '200px' }}><LoadingSpinner /></div>;
   }
 
   if (transactions.length === 0) {
-    return <p>No transactions match the current filters.</p>;
+    return <EmptyState 
+      image="empty-state-transactions.webp"
+      title="Transaksi Tidak Ditemukan"
+      message="Tidak ada transaksi yang cocok dengan filter saat ini. Coba sesuaikan pencarian Anda."
+    />;
   }
 
   return (

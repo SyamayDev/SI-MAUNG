@@ -120,6 +120,20 @@ export function AuthProvider({ children }) {
     const { error } = await supabase.auth.signOut();
     return { error };
   };
+  
+  const sendPasswordResetEmail = async (email) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    return { data, error };
+  };
+
+  const updatePassword = async (newPassword) => {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    return { data, error };
+  };
 
   const refreshProfile = async () => {
     if (session?.user?.id) {
@@ -145,6 +159,8 @@ export function AuthProvider({ children }) {
         register,
         login,
         logout,
+        sendPasswordResetEmail,
+        updatePassword,
         refreshProfile,
       }}
     >

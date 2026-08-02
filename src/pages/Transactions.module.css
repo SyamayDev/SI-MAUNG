@@ -17,12 +17,6 @@
   gap: 1.5rem;
 }
 
-.filters {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
 .transactionList {
   display: flex;
   flex-direction: column;

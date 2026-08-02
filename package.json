@@ -1,9 +1,9 @@
 {
-  "name": "moneytalk",
+  "name": "si-maung",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://<YOUR_GITHUB_USERNAME>.github.io/<REPO_NAME>",
+  "homepage": "https://syamaydev.github.io/si-maung/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

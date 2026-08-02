@@ -55,29 +55,50 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 50px;
-  gap: 8px;
+  height: 60px;
+  gap: 4px;
+  width: 100%;
 }
 
 .bar {
-  width: 8px;
+  width: 4px;
+  border-radius: 4px;
   background-color: var(--primary);
-  animation: wave 1.2s ease-in-out infinite;
+  animation: audio-wave 1.5s infinite ease-in-out;
 }
 
-.bar:nth-child(1) { animation-delay: 0.1s; }
-.bar:nth-child(2) { animation-delay: 0.2s; }
-.bar:nth-child(3) { animation-delay: 0.3s; }
-.bar:nth-child(4) { animation-delay: 0.4s; }
-.bar:nth-child(5) { animation-delay: 0.5s; }
-
-@keyframes wave {
-  0%, 100% { height: 10px; }
-  50% { height: 50px; }
+@keyframes audio-wave {
+  0% { height: 4px; }
+  25% { height: 60px; }
+  50% { height: 20px; }
+  75% { height: 40px; }
+  100% { height: 4px; }
 }
+
+/* Staggered animation delays for a more organic feel */
+.bar:nth-child(20n + 1) { animation-delay: -3.0s; }
+.bar:nth-child(20n + 2) { animation-delay: -2.1s; }
+.bar:nth-child(20n + 3) { animation-delay: -1.4s; }
+.bar:nth-child(20n + 4) { animation-delay: -2.5s; }
+.bar:nth-child(20n + 5) { animation-delay: -1.0s; }
+.bar:nth-child(20n + 6) { animation-delay: -0.5s; }
+.bar:nth-child(20n + 7) { animation-delay: -1.8s; }
+.bar:nth-child(20n + 8) { animation-delay: -2.8s; }
+.bar:nth-child(20n + 9) { animation-delay: -1.2s; }
+.bar:nth-child(20n + 10) { animation-delay: -0.2s; }
+.bar:nth-child(20n + 11) { animation-delay: -2.2s; }
+.bar:nth-child(20n + 12) { animation-delay: -1.1s; }
+.bar:nth-child(20n + 13) { animation-delay: -0.8s; }
+.bar:nth-child(20n + 14) { animation-delay: -2.0s; }
+.bar:nth-child(20n + 15) { animation-delay: -1.5s; }
+.bar:nth-child(20n + 16) { animation-delay: -2.6s; }
+.bar:nth-child(20n + 17) { animation-delay: -0.4s; }
+.bar:nth-child(20n + 18) { animation-delay: -1.3s; }
+.bar:nth-child(20n + 19) { animation-delay: -2.3s; }
+.bar:nth-child(20n + 20) { animation-delay: -0.7s; }
+
 
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4); }
-  70% { box-shadow: 0 0 0 20px rgba(225, 29, 72, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+  0% { box-shadow: 0 0 0 0px var(--expense-soft); }
+  100% { box-shadow: 0 0 0 20px rgba(225, 29, 72, 0); }
 }

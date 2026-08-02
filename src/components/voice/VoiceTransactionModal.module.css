@@ -1,0 +1,62 @@
+.modalContent {
+  padding: 1rem;
+  text-align: center;
+}
+
+.processing, .confirmation {
+  padding: 2rem 1rem;
+}
+
+.processingMessage {
+  margin-top: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.headerTitle {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.headerSubtitle {
+  margin: 0.5rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.transcriptBox {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.transcriptLabel {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.transcriptText {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.parseError {
+  margin-top: 1rem;
+  color: var(--expense);
+  font-weight: 500;
+}

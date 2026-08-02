@@ -1,53 +1,62 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import SavingsGoalCard from '../components/savings/SavingsGoalCard';
 import Button from '../components/ui/Button';
 import styles from './Savings.module.css';
-// import { getSavingsGoals } from '../services/savingsService'; // Will be used later
+import { getSavingsGoals } from '../services/savingsService';
 import { useAuth } from '../context/AuthContext';
+import CreateGoalModal from '../components/savings/CreateGoalModal';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
+import EmptyState from '../components/ui/EmptyState';
 
 function SavingsGoals() {
   const { user } = useAuth();
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchGoals = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data, error } = await getSavingsGoals(user.id);
+    if (error) {
+      console.error(error);
+      // You could show a toast notification here
+    } else {
+      setGoals(data);
+    }
+    setLoading(false);
+  }, [user]);
 
   useEffect(() => {
-    const fetchGoals = async () => {
-      if (!user) return;
-      setLoading(true);
-      // In a real app, this would fetch from Supabase.
-      // Simulating a fetch for now with mock data.
-      const mockGoals = [
-        { id: 1, name: 'New Laptop', current_amount: 7500000, target_amount: 15000000, deadline: '2024-12-31' },
-        { id: 2, name: 'Vacation to Japan', current_amount: 2000000, target_amount: 25000000, deadline: '2025-06-30' },
-        { id: 3, name: 'Emergency Fund', current_amount: 10000000, target_amount: 10000000, deadline: null },
-      ];
-      // const { data, error } = await getSavingsGoals(user.id);
-      // if (error) {
-      //   console.error(error);
-      // } else {
-      //   setGoals(data);
-      // }
-      setGoals(mockGoals);
-      setLoading(false);
-    };
-
     fetchGoals();
-  }, [user]);
+  }, [fetchGoals]);
+  
+  const handleGoalCreated = () => {
+    fetchGoals(); // Refetch goals after a new one is created
+  };
 
   return (
     <div>
       <header className={styles.pageHeader}>
         <div>
-          <h1 className={styles.pageTitle}>Savings Goals</h1>
-          <p className="text-gray-500">Track and manage your financial goals.</p>
+          <h1 className={styles.pageTitle}>Tujuan Tabungan</h1>
+          <p className="text-gray-500">Lacak dan kelola tujuan keuangan Anda.</p>
         </div>
-        <Button variant="primary" onClick={() => { /* TODO: Open Add Goal Modal */ }}>
-          Add Goal
+        <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+          Tambah Tujuan
         </Button>
       </header>
 
       {loading ? (
-        <p>Loading goals...</p>
+        <div style={{ display: 'grid', placeItems: 'center', minHeight: '300px' }}>
+          <LoadingSpinner message="Memuat tujuan Anda..." />
+        </div>
+      ) : goals.length === 0 ? (
+        <EmptyState 
+          image="empty-state-savings.webp"
+          title="Belum Ada Tujuan Tabungan"
+          message="Buat tujuan tabungan pertamamu untuk mulai melacak kemajuanmu!"
+        />
       ) : (
         <div className={styles.goalsGrid}>
           {goals.map((goal) => (
@@ -55,6 +64,12 @@ function SavingsGoals() {
           ))}
         </div>
       )}
+
+      <CreateGoalModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onGoalCreated={handleGoalCreated}
+      />
     </div>
   );
 }

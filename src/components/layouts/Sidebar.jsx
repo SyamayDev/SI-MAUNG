@@ -5,12 +5,12 @@ import { useAuth } from '../../context/AuthContext';
 import './Layout.css';
 
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-  { icon: ArrowLeftRight, label: 'Transactions', path: '/transactions' },
-  { icon: Bot, label: 'AI Assistant', path: '/ai' },
-  { icon: Target, label: 'Savings', path: '/savings' },
-  { icon: BarChart2, label: 'Analytics', path: '/analytics' },
-  { icon: Settings, label: 'Settings', path: '/settings' },
+  { icon: LayoutDashboard, label: 'Dasbor', path: '/dashboard' },
+  { icon: ArrowLeftRight, label: 'Transaksi', path: '/transactions' },
+  { icon: Bot, label: 'Asisten AI', path: '/ai' },
+  { icon: Target, label: 'Tabungan', path: '/savings' },
+  { icon: BarChart2, label: 'Analitik', path: '/analytics' },
+  { icon: Settings, label: 'Pengaturan', path: '/settings' },
 ];
 
 const Sidebar = () => {
@@ -30,7 +30,7 @@ const Sidebar = () => {
           <div className="sidebar-logo-icon">
             <Sparkles size={20} />
           </div>
-          <span>MoneyTalk</span>
+          <span>SI MAUNG</span>
         </div>
         <nav className="sidebar-nav">
           {navItems.map((item) => (
@@ -48,7 +48,7 @@ const Sidebar = () => {
       <div className="sidebar-logout">
         <button type="button" className="logout-button" onClick={handleLogout}>
           <LogOut size={20} />
-          <span>Logout</span>
+          <span>Keluar</span>
         </button>
       </div>
     </aside>

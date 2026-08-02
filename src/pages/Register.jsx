@@ -37,7 +37,7 @@ function Register() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
+      setError("Kata sandi tidak cocok.");
       return;
     }
 
@@ -53,78 +53,95 @@ function Register() {
       setError(error.message);
       return;
     }
-
-    if (data.session) {
-      navigate("/dashboard");
+    
+    // Redirect to onboarding or show success message
+    if (data.user) {
+       navigate("/onboarding");
     } else {
-      setSuccess("Account created successfully! Please check your email for verification.");
+      setSuccess("Akun berhasil dibuat! Silakan periksa email Anda untuk verifikasi.");
     }
   };
 
   return (
-    <div className={styles.authContainer}>
-      <Card className={styles.authCard}>
-        <div className={styles.authHeader}>
-          <div className={styles.authBrand}>MT</div>
-          <h1>Create your MoneyTalk Account</h1>
-          <p>Start understanding where your money goes.</p>
-        </div>
+    <div className={styles.authPage}>
+      <div className={styles.authIntro}>
+        {/* 
+          Image placeholder:
+          Please create an image named 'register-mascot.webp' 
+          and place it in the 'public/images' folder.
+        */}
+        <img src="/images/register-mascot.webp" width="270" height="auto" alt="SI MAUNG Mascot" />
+        <h2>Mulai Perjalanan Keuangan Anda Hari Ini!</h2>
+        <p>Bergabunglah dengan SI MAUNG untuk mendapatkan kendali penuh atas keuangan Anda, dengan mudah dan cerdas.</p>
+      </div>
+      <div className={styles.authFormContainer}>
+        <Card className={styles.authCard}>
+          <div className={styles.authHeader}>
+            <div className={styles.authBrand}>
+              <img src="/images/logo-simang.webp" alt="SI MAUNG Logo" />
+            </div>
+            <h1>Buat Akun SI MAUNG Anda</h1>
+            <p>Mulai pahami ke mana uang Anda pergi.</p>
+          </div>
 
-        {error && <p className={styles.formError}>{error}</p>}
-        {success && <p className={styles.formSuccess}>{success}</p>}
+          {error && <p className={styles.formError}>{error}</p>}
+          {success && <p className={styles.formSuccess}>{success}</p>}
 
-        <form onSubmit={handleSubmit} className={styles.authForm}>
-          <Input
-            label="Full Name"
-            id="fullName"
-            name="fullName"
-            type="text"
-            placeholder="e.g., John Doe"
-            value={form.fullName}
-            onChange={handleChange}
-            required
-          />
-          <Input
-            label="Email"
-            id="email"
-            name="email"
-            type="email"
-            placeholder="you@example.com"
-            value={form.email}
-            onChange={handleChange}
-            required
-          />
-          <Input
-            label="Password"
-            id="password"
-            name="password"
-            type="password"
-            placeholder="Minimum 6 characters"
-            value={form.password}
-            onChange={handleChange}
-            minLength={6}
-            required
-          />
-           <Input
-            label="Confirm Password"
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            placeholder="Repeat your password"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            minLength={6}
-            required
-          />
-          <Button type="submit" disabled={loadingState || loading} variant="primary" size="lg">
-            {loadingState || loading ? "Creating Account..." : "Create Account"}
-          </Button>
-        </form>
+          {!success && (
+            <form onSubmit={handleSubmit} className={styles.authForm}>
+              <Input
+                label="Nama Lengkap"
+                id="fullName"
+                name="fullName"
+                type="text"
+                placeholder="contoh: John Doe"
+                value={form.fullName}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                label="Email"
+                id="email"
+                name="email"
+                type="email"
+                placeholder="anda@contoh.com"
+                value={form.email}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                label="Kata Sandi"
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Minimal 6 karakter"
+                value={form.password}
+                onChange={handleChange}
+                minLength={6}
+                required
+              />
+              <Input
+                label="Konfirmasi Kata Sandi"
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                placeholder="Ulangi kata sandi Anda"
+                value={form.confirmPassword}
+                onChange={handleChange}
+                minLength={6}
+                required
+              />
+              <Button type="submit" disabled={loadingState || loading} variant="primary" size="lg">
+                {loadingState || loading ? "Membuat Akun..." : "Buat Akun"}
+              </Button>
+            </form>
+          )}
 
-        <p className={styles.authFooter}>
-          Already have an account? <Link to="/login">Log In</Link>
-        </p>
-      </Card>
+          <p className={styles.authFooter}>
+            Sudah punya akun? <Link to="/login">Masuk</Link>
+          </p>
+        </Card>
+      </div>
     </div>
   );
 }

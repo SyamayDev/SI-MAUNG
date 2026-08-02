@@ -18,7 +18,7 @@ const Topbar = () => {
       <div className="topbar-left">
         <div>
           <p className="topbar-welcome">{getGreeting()},</p>
-          <h1 className="topbar-title">{profile?.full_name?.split(' ')[0] || 'MoneyTalk'}</h1>
+          <h1 className="topbar-title">{profile?.full_name?.split(' ')[0] || 'SI MAUNG'}</h1>
         </div>
       </div>
       <div className="topbar-actions">

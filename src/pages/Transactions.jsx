@@ -34,9 +34,9 @@ function Transactions() {
   return (
     <div>
       <header className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Transactions</h1>
+        <h1 className={styles.pageTitle}>Transaksi</h1>
         <p className={styles.pageDescription}>
-          Here is a complete history of your income and expenses.
+          Berikut adalah riwayat lengkap pendapatan dan pengeluaran Anda.
         </p>
       </header>
 

@@ -16,7 +16,7 @@ const QuickActions = ({ onIncome, onExpense, onVoice }) => {
       </Button>
       <Button variant="primary" className={styles.voiceAction} onClick={onVoice}>
         <Mic size={20} />
-        Talk to MoneyTalk
+        Talk to SI MAUNG
       </Button>
     </div>
   );

@@ -1,12 +1,30 @@
-function ChatMessage({ role = "user", text = "" }) {
+import React from 'react';
+import styles from './AI.module.css';
+
+const ChatMessage = ({ message }) => {
+  const { role, content } = message;
+  const isUser = role === 'user';
+  
+  // If content is a component (like TransactionConfirmation), render it directly.
+  if (typeof content !== 'string') {
+    return (
+       <div className={`${styles.chatMessage} ${styles[role]}`}>
+        <div className={styles.avatar}>{isUser ? 'U' : 'AI'}</div>
+        <div className={styles.messageContent}>
+          {content}
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, color: "#6d6c7a" }}>{role}</div>
-        <div style={{ marginTop: 6 }}>{text}</div>
+    <div className={`${styles.chatMessage} ${styles[role]}`}>
+      <div className={styles.avatar}>{isUser ? 'U' : 'AI'}</div>
+      <div className={styles.messageContent}>
+        {content}
       </div>
     </div>
   );
-}
+};
 
 export default ChatMessage;

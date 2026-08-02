@@ -12,69 +12,7 @@ import {
   Gift,
   MoreHorizontal,
 } from "lucide-react";
-
-export const transactionCategories = [
-  {
-    value: "food",
-    label: "Food",
-    keywords: ["makan", "kopi", "restoran", "warung", "snack", "jajan", "lauk"],
-  },
-  {
-    value: "transportation",
-    label: "Transportation",
-    keywords: ["transport", "gojek", "grab", "bus", "kereta", "tol", "ojek", "taksi"],
-  },
-  {
-    value: "shopping",
-    label: "Shopping",
-    keywords: ["belanja", "market", "mall", "shop", "pengeluaran"],
-  },
-  {
-    value: "bills",
-    label: "Bills",
-    keywords: ["tagihan", "listrik", "air", "internet", "liputan", "langganan"],
-  },
-  {
-    value: "entertainment",
-    label: "Entertainment",
-    keywords: ["film", "hiburan", "nonton", "games", "kafe", "hangout"],
-  },
-  {
-    value: "health",
-    label: "Health",
-    keywords: ["obat", "dokter", "kesehatan", "rs", "fitness", "vitamin"],
-  },
-  {
-    value: "education",
-    label: "Education",
-    keywords: ["buku", "pelajaran", "kursus", "seminar", "kuliah", "kelas"],
-  },
-  {
-    value: "family",
-    label: "Family",
-    keywords: ["keluarga", "anak", "ibu", "ayah", "pacar", "istri", "suami"],
-  },
-  {
-    value: "salary",
-    label: "Salary",
-    keywords: ["gaji", "salary", "income", "bayar", "penerimaan", "bonus"],
-  },
-  {
-    value: "gift",
-    label: "Gift",
-    keywords: ["hadiah", "gift", "kado", "donasi", "sumbangan"],
-  },
-  {
-    value: "other",
-    label: "Other",
-    keywords: [],
-  },
-];
-
-export const transactionTypes = [
-  { value: "income", label: "Income" },
-  { value: "expense", label: "Expense" },
-];
+import { transactionCategories } from "../lib/constants";
 
 export const getCategoryIcon = (category) => {
   const normalizedCategory = category?.toLowerCase() || "other";
@@ -97,7 +35,7 @@ export const getCategoryIcon = (category) => {
 export const guessCategoryFromText = (text) => {
   const lower = text?.toLowerCase() || "";
   for (const category of transactionCategories) {
-    if (category.keywords.some((keyword) => lower.includes(keyword))) {
+    if (lower.includes(category.label.toLowerCase())) {
       return category.value;
     }
     if (lower.includes(category.value)) {
