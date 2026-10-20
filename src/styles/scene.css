@@ -1,6 +1,18 @@
 /* ================= Persistent 3D layer (components/scene/SceneHost) ================= */
+/* Sky behind the story/portrait pages (full screen, behind all content). */
+.scene-backdrop {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 100vh;
+  height: 100lvh;
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity var(--dur-3) var(--ease-out);
+}
+
+/* The stage that holds MAUNG (canvas, or 2D posters as fallback). */
 .scene-host {
-  --band: 36svh;
+  --band-top: 64px;
   position: fixed;
   inset: 0;
   z-index: -1;
@@ -9,16 +21,45 @@
   transition: opacity var(--dur-3) var(--ease-out);
 }
 
+.scene-backdrop--off,
 .scene-host--off {
   visibility: hidden;
   opacity: 0;
 }
 
-@media (min-width: 1024px) {
-  .scene-host {
-    --band: 0px;
+.scene-host--shell {
+  --band-top: var(--topbar-h);
+}
+
+/* Its own copy of the sky, lined up with the backdrop — only needed when the
+   stage is a band in front of the content (below). */
+.scene-host__sky {
+  display: none;
+}
+
+/* Phones & tablets, story pages: MAUNG keeps a fixed place — a stage under
+   the top bar. The chapters scroll underneath it and fade out at its lower
+   edge, so text never crosses him. It also takes the taps, so content hidden
+   beneath it can't be pressed by accident (touch scrolling still scrolls the page). */
+@media (max-width: 1023px) {
+  .scene-host--story {
+    bottom: auto;
+    height: calc(var(--band-top) + var(--band-h));
+    z-index: var(--z-band);
+    pointer-events: auto;
+    -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 22px), transparent);
+    mask-image: linear-gradient(180deg, #000 calc(100% - 22px), transparent);
   }
 
+  .scene-host--story .scene-host__sky {
+    display: block;
+    inset: 0 0 auto;
+    height: 100vh;
+    height: 100lvh;
+  }
+}
+
+@media (min-width: 1024px) {
   .scene-host--shell {
     left: var(--sidebar-w);
   }
@@ -98,8 +139,8 @@
 .story-posters img {
   position: absolute;
   left: 50%;
-  top: calc(var(--topbar-h) + 2svh);
-  height: calc(var(--band) - 4svh);
+  top: calc(var(--band-top) + 8px);
+  height: calc(var(--band-h, 36svh) - 20px);
   width: auto;
   max-width: 80%;
   object-fit: contain;

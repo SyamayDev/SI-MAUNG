@@ -260,16 +260,6 @@
   --topbar-h: 64px;
 }
 
-.story--landing .chapter:first-of-type {
-  padding-top: calc(var(--band) + 64px);
-}
-
-@media (min-width: 1024px) {
-  .story--landing .chapter:first-of-type {
-    padding-top: var(--sp-16);
-  }
-}
-
 .landing__promises {
   display: grid;
   gap: var(--sp-3);

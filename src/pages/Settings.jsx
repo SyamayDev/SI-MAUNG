@@ -1,5 +1,5 @@
 ﻿import { useState } from "react";
-import { CheckCircle2, LogOut, Mic, MicOff, Monitor, Moon, Sun } from "lucide-react";
+import { CheckCircle2, LogOut, Mic, MicOff, Moon, Sun } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import Input, { PasswordInput } from "../components/ui/Input";
@@ -9,7 +9,7 @@ import Segmented from "../components/ui/Segmented";
 import { setPreference, usePreferences } from "../lib/preferences";
 import { speechSupported } from "../hooks/useSpeechCapture";
 import { canRender3D, prefersReducedMotion } from "../lib/device";
-import { useTheme } from "../lib/theme";
+import { followDevice, setTheme, useTheme } from "../lib/theme";
 
 const REASONS = {
   off: "Scene 3D dimatikan — tampilan memakai ilustrasi 2D.",
@@ -92,7 +92,7 @@ function PasswordForm() {
 export default function Settings() {
   const prefs = usePreferences();
   const { logout } = useAuth();
-  const { preference: themePref, theme, setPreference: setTheme } = useTheme();
+  const { theme, followsDevice } = useTheme();
   const scene = canRender3D();
 
   return (
@@ -143,16 +143,24 @@ export default function Settings() {
           </p>
           <Segmented
             label="Tema warna"
-            value={themePref}
+            value={theme}
             onChange={setTheme}
             options={[
               { value: "light", label: "Terang", icon: Sun },
               { value: "dark", label: "Gelap", icon: Moon },
-              { value: "system", label: "Sistem", icon: Monitor },
             ]}
           />
           <p className="field__hint" style={{ marginTop: "var(--sp-2)" }}>
-            {themePref === "system" ? `Mengikuti pengaturan perangkat (saat ini ${theme === "dark" ? "gelap" : "terang"}).` : "Tersimpan di perangkat ini."}
+            {followsDevice ? (
+              "Saat ini mengikuti tema perangkatmu."
+            ) : (
+              <>
+                Pilihanmu tersimpan di perangkat ini.{" "}
+                <button type="button" className="link-btn" onClick={followDevice}>
+                  Ikuti perangkat lagi
+                </button>
+              </>
+            )}
           </p>
           <p className="field__label" style={{ marginTop: "var(--sp-5)" }}>
             Scene 3D MAUNG

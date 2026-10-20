@@ -62,6 +62,8 @@
   --z-dialog: 100;
   --z-toast: 120;
   --z-loader: 200;
+  /* fixed MAUNG stage above scrolling chapters (phones/tablets, story pages) */
+  --z-band: 30;
 
   /* Motion */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -233,5 +235,13 @@
 @media (max-width: 1023px) {
   :root {
     --topbar-h: 58px;
+    /* height of the fixed MAUNG stage under the top bar on story pages */
+    --band-h: clamp(170px, 34svh, 360px);
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 540px) {
+  :root {
+    --band-h: clamp(110px, 30svh, 160px);
   }
 }

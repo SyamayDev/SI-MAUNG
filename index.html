@@ -9,12 +9,12 @@
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <script>
-      // Apply the saved colour theme before the first paint (no flash of the wrong theme).
+      // Apply the colour theme before the first paint (no flash): the saved choice, else the device theme.
       (function () {
         var theme = "light";
         try {
           var pref = localStorage.getItem("simaung:theme");
-          var dark = pref === "dark" || ((!pref || pref === "system") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var dark = pref === "dark" || (pref !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches);
           theme = dark ? "dark" : "light";
         } catch (e) {}
         document.documentElement.setAttribute("data-theme", theme);

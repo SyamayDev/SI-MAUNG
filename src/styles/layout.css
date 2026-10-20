@@ -247,8 +247,9 @@
   border-radius: var(--r-sm);
 }
 
+/* story page: stays on top of the fixed MAUNG stage while the chapters scroll */
 .mobilebar--stage {
-  position: absolute;
+  position: fixed;
   inset: 0 0 auto;
   background: transparent;
   backdrop-filter: none;

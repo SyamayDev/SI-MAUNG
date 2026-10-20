@@ -20,7 +20,7 @@ export default function Landing() {
 
   useEffect(() => {
     setScene({ data: { flow: null, categories: [], goal: null, demo: true } });
-    const stop = startStory(storyRef.current, { headerOffset: () => 64 });
+    const stop = startStory(storyRef.current);
     return () => {
       stop();
       setScene({ data: { flow: null, categories: [], goal: null, demo: false } });

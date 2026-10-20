@@ -1,26 +1,34 @@
 /* ================= Scroll story (dashboard + landing) =================
  * The fixed 3D layer (components/scene/SceneHost, styles/scene.css) sits
  * behind chapters that scroll natively. Wide screens: text column on the left, MAUNG on the
- * right. Phones/tablets: MAUNG in a band at the top, the chapter panel below.
+ * right. Phones/tablets: MAUNG on a fixed stage at the top (height --band-h,
+ * under a --story-top bar); the chapters start below it and scroll beneath it.
  */
 .story {
-  --band: 36svh;
+  --story-top: 0px;
   position: relative;
   isolation: isolate;
   color: var(--c-on-stage);
+  padding-top: calc(var(--story-top) + var(--band-h, 0px));
+}
+
+.story--landing {
+  --story-top: 64px;
+}
+
+.story--dash {
+  --story-top: var(--topbar-h);
 }
 
 /* ---------- chapters ---------- */
 .chapter {
   position: relative;
   display: grid;
-  align-content: end;
-  padding: var(--band) var(--gutter) var(--sp-10);
-  scroll-margin-top: var(--topbar-h);
-}
-
-.chapter + .chapter {
-  padding-top: calc(var(--band) + var(--sp-6));
+  align-content: start;
+  /* each chapter gets at least the visible area below the stage */
+  min-height: calc(100svh - var(--story-top) - var(--band-h, 0px));
+  padding: var(--sp-6) var(--gutter) var(--sp-12);
+  scroll-margin-top: calc(var(--story-top) + var(--band-h, 0px));
 }
 
 .chapter__panel {
@@ -31,7 +39,9 @@
 
 @media (min-width: 1024px) {
   .story {
-    --band: 0px;
+    --story-top: 0px;
+    --band-h: 0px;
+    padding-top: 0;
   }
 
   .chapter {

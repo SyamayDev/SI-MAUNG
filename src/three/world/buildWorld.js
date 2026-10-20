@@ -63,10 +63,10 @@ const FRAMES = [
   { target: [0, 1.75, -0.4], size: [3.9, 4.0], dir: [0, -0.04, 1], maung: [0, 0], screen: [0.72, 0.46] },
   { target: [0, 1.38, 0], size: [3.2, 3.3], dir: [-0.3, 0.14, 1], maung: [0, -0.15], screen: [0.72, 0.46] },
 ];
-// Phones/tablets: tighter boxes, the band above the text is short.
+// Phones/tablets: tighter boxes for the short, wide stage above the text.
 const FRAMES_TALL = [
   { target: [0, 1.45, 0], size: [2.3, 2.9] },
-  { target: [0.7, 1.6, 0], size: [3.9, 2.6] },
+  { target: [0.7, 1.45, 0], size: [3.9, 2.95] },
   { target: [0, 1.0, -0.3], size: [5.4, 2.6] },
   { target: [0.8, 1.05, 0], size: [5.2, 2.8] },
   { target: [0, 1.75, -0.4], size: [3.6, 3.7] },
@@ -432,14 +432,14 @@ export function buildWorld({ tier = "mid" } = {}) {
         bw = f.w * 0.95;
         bh = f.h * 0.95;
       } else if (tall) {
-        const bandTop = store.bandTop;
-        const bands = store.bandBottom;
-        const bottom = lerp(bands[a] ?? 0.5, bands[b] ?? 0.5, w);
-        const band = Math.max(0.26, bottom - bandTop);
+        // The canvas is the fixed stage (styles/scene.css): the top bar overlaps
+        // its first bandTop px, MAUNG is framed in the rest — the text never reaches it.
+        const top = Math.min(store.bandTop / Math.max(1, size.height), 0.45);
+        const band = 1 - top;
         cx = 0.5;
-        cy = bandTop + band / 2;
+        cy = top + band * 0.46; // keep his feet clear of the stage's faded lower edge
         bw = 0.94;
-        bh = band * 0.92;
+        bh = band * 0.8;
       }
       const aspect = size.width / Math.max(1, size.height);
       const tanHalf = Math.tan((camera.fov * Math.PI) / 360);

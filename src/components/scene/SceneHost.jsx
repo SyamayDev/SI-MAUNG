@@ -5,6 +5,10 @@
  *    the browser is idle otherwise — so a later visit to the dashboard is instant
  *  • keeps the WebGL world alive across navigation (paused while "off")
  *  • shows the 2D posters ONLY when 3D is impossible or failed
+ * Two layers: the sky backdrop (full screen, behind everything) and the stage
+ * that holds MAUNG. On phones/tablets the story stage is a fixed band under
+ * the top bar that the chapters scroll beneath (styles/scene.css), so text
+ * never covers him.
  */
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useLocation } from "react-router-dom";
@@ -61,8 +65,12 @@ export default function SceneHost() {
   const fallback = !support.ok || failed;
 
   return (
-    <div className={`scene-host scene-host--${mode} ${shell ? "scene-host--shell" : ""} ${live ? "is-live" : ""}`} aria-hidden="true">
-      <div className="scene-sky" />
+    <>
+      <div className={`scene-backdrop scene-backdrop--${mode}`} aria-hidden="true">
+        <div className="scene-sky" />
+      </div>
+      <div className={`scene-host scene-host--${mode} ${shell ? "scene-host--shell" : ""} ${live ? "is-live" : ""}`} aria-hidden="true">
+      <div className="scene-sky scene-host__sky" />
       {fallback && mode === "story" && (
         <div className="story-posters">
           {CHAPTER_POSTERS.map((src, i) => (
@@ -72,6 +80,7 @@ export default function SceneHost() {
       )}
       {StageComponent && !fallback && <StageComponent />}
       {mode !== "off" && !live && !fallback && bootPhase === "done" && <p className="scene-host__loading">Menyiapkan MAUNG 3D…</p>}
-    </div>
+      </div>
+    </>
   );
 }

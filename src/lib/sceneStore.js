@@ -30,11 +30,10 @@ export const scene = {
   chapter: 0,
   /** The story section is on screen (render loop pauses otherwise). */
   inView: true,
-  /** "wide": text left, MAUNG right. "tall": phones/tablets, MAUNG framed in the band above the text. */
+  /** "wide": text left, MAUNG right. "tall": phones/tablets, MAUNG on a fixed stage above the scrolling text. */
   layout: "wide",
-  /** Tall layout: free band [top, bottom] as viewport fractions, per chapter. */
-  bandTop: 0.1,
-  bandBottom: [],
+  /** Tall layout: height (px) of the top bar that overlaps the top of the stage canvas. */
+  bandTop: 64,
   /** Real figures behind the chapters (null = no data → the scene shows no figure). */
   data: {
     flow: null, // { income, expense } for this month
