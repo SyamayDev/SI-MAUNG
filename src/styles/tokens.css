@@ -236,7 +236,13 @@
   :root {
     --topbar-h: 58px;
     /* height of the fixed MAUNG stage under the top bar on story pages */
-    --band-h: clamp(170px, 34svh, 360px);
+    --band-h: clamp(160px, 30svh, 340px);
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 820px) {
+  :root {
+    --band-h: clamp(150px, 28svh, 300px);
   }
 }
 

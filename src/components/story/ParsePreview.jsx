@@ -18,7 +18,7 @@ export default function ParsePreview() {
       </label>
       <input id="parse-demo" className="input" value={text} onChange={(e) => setText(e.target.value)} maxLength={200} autoComplete="off" />
       <div className="row" style={{ gap: "var(--sp-2)" }}>
-        {EXAMPLE_PHRASES.slice(1).map((p) => (
+        {EXAMPLE_PHRASES.slice(1, 3).map((p) => (
           <button key={p} type="button" className="chip" onClick={() => setText(p)}>
             {p}
           </button>

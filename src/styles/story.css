@@ -1,64 +1,279 @@
 /* ================= Scroll story (dashboard + landing) =================
- * The fixed 3D layer (components/scene/SceneHost, styles/scene.css) sits
- * behind chapters that scroll natively. Wide screens: text column on the left, MAUNG on the
- * right. Phones/tablets: MAUNG on a fixed stage at the top (height --band-h,
- * under a --story-top bar); the chapters start below it and scroll beneath it.
+ * Pinned chapters, after the SI-RAJU technique: each <section.chapter> is
+ * tall; its .chapter__stage sticks to the viewport while the 3D world plays
+ * (components/scene/SceneHost, styles/scene.css). The panel keeps its own
+ * zone — left column on wide screens, below MAUNG on phones/tablets — and
+ * never moves across him: it fades in as the chapter arrives, shows its steps
+ * in place (.deck), and fades out before the stage is released.
+ * lib/scrollStory writes --enter / --p / --exit and data-step on each section.
  */
 .story {
   --story-top: 0px;
+  /* scroll length of one step while a chapter is pinned */
+  --step-len: 70svh;
   position: relative;
   isolation: isolate;
   color: var(--c-on-stage);
-  padding-top: calc(var(--story-top) + var(--band-h, 0px));
 }
 
 .story--landing {
   --story-top: 64px;
+  --stage-pb: calc(var(--sp-6) + var(--safe-bottom));
 }
 
 .story--dash {
   --story-top: var(--topbar-h);
+  --stage-pb: calc(var(--bottomnav-h) + var(--safe-bottom) + var(--sp-4));
 }
 
 /* ---------- chapters ---------- */
 .chapter {
   position: relative;
+  height: calc(100vh + var(--steps, 1) * var(--step-len));
+  height: calc(100svh + var(--steps, 1) * var(--step-len));
+}
+
+/* the last chapter needs no hand-over: a shorter hold */
+.chapter:last-of-type {
+  height: calc(100svh + var(--steps, 1) * var(--step-len) * 0.5);
+}
+
+.chapter__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
   display: grid;
-  align-content: start;
-  /* each chapter gets at least the visible area below the stage */
-  min-height: calc(100svh - var(--story-top) - var(--band-h, 0px));
-  padding: var(--sp-6) var(--gutter) var(--sp-12);
-  scroll-margin-top: calc(var(--story-top) + var(--band-h, 0px));
+  /* phones/tablets: the text zone takes what its content needs (bottom row);
+     MAUNG gets the rest above it, never less than --maung-min */
+  --maung-min: 120px;
+  grid-template-rows: minmax(calc(var(--story-top) + var(--maung-min)), 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0 var(--gutter) var(--stage-pb, var(--sp-6));
+  isolation: isolate;
+}
+
+/* Readability scrim between the 3D world and the text; follows the panel's fade. */
+.chapter__stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(0deg, color-mix(in srgb, var(--c-stage-0) 88%, transparent) 0%, color-mix(in srgb, var(--c-stage-0) 55%, transparent) 42%, transparent 66%);
+  opacity: min(var(--enter, 1), 1 - var(--exit, 0));
 }
 
 .chapter__panel {
+  --show: min(clamp(0, (var(--enter, 1) - 0.45) * 2.2, 1), 1 - var(--exit, 0));
+  grid-row: 2;
+  align-self: end;
   width: min(100%, 560px);
+  max-height: calc(100svh - var(--story-top) - var(--maung-min) - var(--stage-pb, var(--sp-6)));
   margin: 0 auto;
   min-width: 0;
+  /* last resort on very short screens: the panel scrolls inside its zone */
+  overflow-y: auto;
+  overscroll-behavior: auto;
+  scrollbar-width: none;
+  opacity: var(--show);
+  translate: 0 calc((1 - var(--show)) * 28px);
+}
+
+.chapter__panel::-webkit-scrollbar {
+  display: none;
+}
+
+.chapter[data-faded] .chapter__panel {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chapter__panel {
+    translate: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .chapter__kicker {
+    margin-bottom: var(--sp-2);
+  }
+
+  .chapter__title {
+    font-size: clamp(1.55rem, 1rem + 2.6vw, 2.1rem);
+  }
+
+  .chapter__lead {
+    margin-top: var(--sp-2);
+    font-size: var(--fs-base);
+  }
+
+  .chapter .panel {
+    margin-top: var(--sp-4);
+    padding: var(--sp-4);
+  }
+
+  .deck {
+    margin-top: var(--sp-3);
+  }
+
+  .step-dots {
+    margin-top: var(--sp-3);
+  }
+
+  /* the pinned text zone is short: the shortest useful lists (full lists are a tap away) */
+  .deck__card .tx-list > li:nth-child(n + 3),
+  .deck__card .insight:nth-child(n + 2),
+  .chapter .goal-mini:nth-of-type(n + 2) {
+    display: none;
+  }
+
+  .deck__card .cat-bars {
+    gap: var(--sp-2);
+  }
+
+  .deck__card .cat-bar:nth-child(n + 5) {
+    display: none;
+  }
+
+  /* bars only — like a progress strip */
+  .step-dots li span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
 }
 
 @media (min-width: 1024px) {
   .story {
     --story-top: 0px;
-    --band-h: 0px;
-    padding-top: 0;
+    --step-len: 80svh;
   }
 
-  .chapter {
-    min-height: 100vh;
-    min-height: 100svh;
-    align-content: center;
-    padding: var(--sp-16) clamp(2rem, 4vw, 4rem);
-  }
-
-  .chapter + .chapter {
-    padding-top: var(--sp-16);
+  .chapter__stage {
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    padding: var(--sp-10) clamp(2rem, 4vw, 4rem);
   }
 
   .chapter__panel {
+    max-height: calc(100svh - 2 * var(--sp-10));
+  }
+
+  .chapter__stage::before {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--c-stage-0) 72%, transparent) 0%, color-mix(in srgb, var(--c-stage-0) 38%, transparent) 36%, transparent 58%);
+  }
+
+  .chapter__panel {
+    grid-row: 1;
+    align-self: center;
     margin: 0;
     width: min(46%, 560px);
+    translate: calc((1 - var(--show)) * -24px) 0;
   }
+}
+
+/* ---------- step deck: cards that take turns in one place ---------- */
+.deck {
+  display: grid;
+  margin-top: var(--sp-5);
+}
+
+.deck__card {
+  grid-area: 1 / 1;
+  min-width: 0;
+  opacity: 0;
+  translate: 0 14px;
+  pointer-events: none;
+  transition:
+    opacity 420ms var(--ease-out),
+    translate 520ms var(--ease-out);
+}
+
+.chapter:not([data-step]) [data-step-card="0"],
+.chapter[data-step="0"] [data-step-card="0"],
+.chapter[data-step="1"] [data-step-card="1"],
+.chapter[data-step="2"] [data-step-card="2"],
+.chapter[data-step="3"] [data-step-card="3"] {
+  opacity: 1;
+  translate: none;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck__card {
+    translate: none;
+  }
+}
+
+.step-dots {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+.step-dots li {
+  flex: 1;
+  display: grid;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  font-weight: 750;
+  color: var(--c-on-stage-mute);
+}
+
+.step-dots li::before {
+  content: "";
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.35;
+  transition:
+    opacity var(--dur-2),
+    background-color var(--dur-2);
+}
+
+.chapter:not([data-step]) [data-dot="0"],
+.chapter[data-step="0"] [data-dot="0"],
+.chapter[data-step="1"] [data-dot="0"],
+.chapter[data-step="1"] [data-dot="1"],
+.chapter[data-step="2"] [data-dot="0"],
+.chapter[data-step="2"] [data-dot="1"],
+.chapter[data-step="2"] [data-dot="2"] {
+  color: var(--c-on-stage);
+}
+
+.chapter:not([data-step]) [data-dot="0"]::before,
+.chapter[data-step="0"] [data-dot="0"]::before,
+.chapter[data-step="1"] [data-dot="0"]::before,
+.chapter[data-step="1"] [data-dot="1"]::before,
+.chapter[data-step="2"] [data-dot="0"]::before,
+.chapter[data-step="2"] [data-dot="1"]::before,
+.chapter[data-step="2"] [data-dot="2"]::before {
+  background: var(--c-amber);
+  opacity: 1;
+}
+
+/* a card heading inside the deck */
+.deck__title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-weight: 800;
+  font-size: var(--fs-md);
+  color: var(--c-ink);
+}
+
+.deck__title b {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--c-amber);
+  color: var(--c-on-amber);
+  font-size: var(--fs-xs);
 }
 
 .chapter__kicker {
@@ -97,7 +312,7 @@
 
 /* Paper card inside a night chapter */
 .chapter .panel {
-  margin-top: var(--sp-6);
+  margin-top: var(--sp-5);
   color: var(--c-ink);
   box-shadow: var(--sh-3);
 }
@@ -549,4 +764,79 @@
   text-align: center;
   font-size: var(--fs-xs);
   color: var(--c-on-stage-mute);
+}
+
+.deck__card > .panel {
+  margin-top: 0;
+}
+
+.deck__card .panel > p:first-child.deck__title,
+.deck__card .deck__title + * {
+  margin-top: var(--sp-2);
+}
+
+.deck__more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+/* Phones/tablets: the quick actions fit the pinned text zone (icon + label). */
+@media (max-width: 1023px) {
+  .quick-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sp-2);
+  }
+
+  .quick-card {
+    min-height: 0;
+    justify-items: center;
+    text-align: center;
+    padding: var(--sp-3) var(--sp-2);
+    font-size: var(--fs-sm);
+  }
+
+  .quick-card small {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .hero__balance-label {
+    margin-top: var(--sp-4);
+  }
+
+  .hero__month {
+    margin-top: var(--sp-3);
+  }
+
+  .hero__actions {
+    margin-top: var(--sp-4);
+    gap: var(--sp-2);
+  }
+
+  .deck .parse-preview {
+    gap: var(--sp-2);
+  }
+}
+
+/* Nothing may follow the last pinned chapter: extra scroll would release its
+   stage and carry the final panel up across MAUNG. */
+.shell--stage .shell__main {
+  padding-bottom: 0;
+}
+
+.chapter .story-footer {
+  padding: var(--sp-5) 0 0;
+  text-align: left;
+}
+
+@media (max-width: 359px) {
+  /* the smallest phones: the demo keeps its input, result and privacy note */
+  .deck .parse-preview > .row {
+    display: none;
+  }
 }

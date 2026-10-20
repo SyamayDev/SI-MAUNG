@@ -432,14 +432,16 @@ export function buildWorld({ tier = "mid" } = {}) {
         bw = f.w * 0.95;
         bh = f.h * 0.95;
       } else if (tall) {
-        // The canvas is the fixed stage (styles/scene.css): the top bar overlaps
-        // its first bandTop px, MAUNG is framed in the rest — the text never reaches it.
-        const top = Math.min(store.bandTop / Math.max(1, size.height), 0.45);
-        const band = 1 - top;
+        // MAUNG keeps the zone between the top bar and the pinned text panel
+        // (lib/scrollStory measures it from the chapter stage's grid rows).
+        const H = Math.max(1, size.height);
+        const top = Math.min(store.bandTop / H, 0.4);
+        const zoneEnd = (i) => (store.bandBottom[i] > store.bandTop ? store.bandBottom[i] / H : top + 0.36);
+        const band = Math.max(0.12, lerp(zoneEnd(a), zoneEnd(b), w) - top);
         cx = 0.5;
-        cy = top + band * 0.46; // keep his feet clear of the stage's faded lower edge
+        cy = top + band * 0.5;
         bw = 0.94;
-        bh = band * 0.8;
+        bh = Math.min(band, 0.42) * 0.9; // a tall free zone doesn't make him huge
       }
       const aspect = size.width / Math.max(1, size.height);
       const tanHalf = Math.tan((camera.fov * Math.PI) / 360);

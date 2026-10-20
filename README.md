@@ -85,7 +85,7 @@ MAUNG dibangun **prosedural** di kode (tanpa file model/GLB), mengikuti maskot `
 
 ## Responsif
 
-Mobile-first: di bawah 1024 px sidebar menjadi top bar + bottom navigation dengan tombol mikrofon di tengah; dialog menjadi bottom sheet dengan scroll internal dan safe-area iOS, dan baris tombol simpan/batal pada formulir panjang tetap terlihat di bawah; di halaman cerita MAUNG berdiri di panggung tetap di bawah top bar dan babak-babak bergulir di bawahnya, sehingga teks tidak pernah menutupinya. Diperiksa tanpa horizontal overflow pada 320, 360, 390, 430, 768, 1024, 1280, 1440 px (lihat *Status verifikasi*).
+Mobile-first: di bawah 1024 px sidebar menjadi top bar + bottom navigation dengan tombol mikrofon di tengah; dialog menjadi bottom sheet dengan scroll internal dan safe-area iOS, dan baris tombol simpan/batal pada formulir panjang tetap terlihat di bawah; di halaman cerita tiap babak dipin seperti SI-RAJU — MAUNG di atas, teks di zonanya sendiri di bawah, muncul dan memudar di tempat (tidak pernah melintasi MAUNG), isi panjang dipecah menjadi kartu langkah yang bergantian. Diperiksa tanpa horizontal overflow pada 320, 360, 390, 430, 768, 1024, 1280, 1440 px (lihat *Status verifikasi*).
 
 ## Deployment (GitHub Pages)
 
@@ -101,6 +101,14 @@ Penyebab masalah sebelumnya:
 3. Remote `origin` dulu menunjuk `SyamayDev/moneytalk.git` (dialihkan GitHub ke repo yang sama); kini `https://github.com/SyamayDev/SI-MAUNG.git`.
 
 Variabel `VITE_*` harus ada saat build (di mesin lokal atau secrets CI).
+
+### Vercel
+
+Repo yang sama juga bisa dibangun Vercel dari branch `main` (setiap push ke `main` = deploy baru). `vite.config.js` mendeteksi builder Vercel (`VERCEL=1`) dan memakai base `/`; `vercel.json` berisi rewrite SPA (`/login`, `/transactions`, … → `index.html`) dan cache panjang untuk `assets/`.
+
+Env vars di Vercel (Project → Settings → Environment Variables): `VITE_SUPABASE_URL` dan `VITE_SUPABASE_PUBLISHABLE_KEY`. Bila project memakai integrasi Vercel ↔ Supabase, build juga membaca nama bawaan integrasi untuk **dua nilai publik itu saja** (`NEXT_PUBLIC_SUPABASE_URL`/`SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`/`SUPABASE_PUBLISHABLE_KEY`/`NEXT_PUBLIC_SUPABASE_ANON_KEY`/`SUPABASE_ANON_KEY`); service-role key tidak pernah dibaca. Tambahkan `https://<domain-vercel>/**` ke Redirect URLs Supabase.
+
+Deploy lama di Vercel macet di loader karena dibangun dengan base `/SI-MAUNG/` padahal disajikan dari root — semua aset JS 404.
 
 ## Struktur
 

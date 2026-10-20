@@ -92,14 +92,23 @@ Awalnya tema **mengikuti perangkat** (`prefers-color-scheme`, ikut berubah langs
 
 Di landing (belum masuk) scene berjalan dalam mode ilustrasi (`data.demo`), tanpa angka.
 
-## Scroll
+## Scroll: babak yang dipin (teknik SI-RAJU)
 
-`src/lib/scrollStory.js` hanya **membaca** scroll (tidak ada scroll-jacking, tidak ada pinning paksa). Posisi cerita kontinu: babak *i* "tiba" pada `[i−0.3, i)` saat bagian atasnya bergerak dari bawah viewport ke garis baca, lalu "bertahan" pada `[i, i+0.7)` hingga babak berikutnya mulai tiba. Satu listener pasif + maksimal satu `requestAnimationFrame` per frame; ukuran diukur ulang saat resize/rotasi dan saat tinggi konten berubah (`ResizeObserver`). Nilai ditulis ke `sceneStore` (dibaca scene tiap frame — tanpa render React per piksel) dan ke CSS (`--p`, `data-active`).
+Setiap babak adalah `<section class="chapter" data-steps="n">` yang tinggi (`100svh + n × --step-len`); `.chapter__stage` di dalamnya `position: sticky` setinggi layar. Native scroll tidak pernah dibajak — `src/lib/scrollStory.js` hanya **membaca** scroll (satu listener pasif + maksimal satu `requestAnimationFrame`) dan menulis:
+
+- `--enter` (0→1 saat babak tiba), `--p` (0→1 selama dipin), `--exit` (0→1 di 20 % terakhir masa pin) dan `data-step` pada tiap section;
+- `scene.story` untuk dunia 3D (dibaca tiap frame, tanpa render React per piksel) dan `<html data-story="i">` untuk warna langit.
+
+Urutan tiap babak: panel teks muncul di tempatnya → kartu langkah (`Deck`/`Step` di `components/story/ChapterRail.jsx`) bergantian **di posisi yang sama** seiring gulir (mis. Ucapkan → Periksa → Simpan; Masuk & keluar → Transaksi terbaru; Kategori → Wawasan) → panel memudar → baru kemudian stage dilepas dan MAUNG berpindah ke babak berikutnya sementara teks babak baru masih memudar masuk. Jadi teks tidak pernah bergerak melintasi MAUNG.
+
+- **Desktop (≥ 1024 px):** panel di kolom kiri (maks. 46 %), MAUNG di kanan; scrim gradien kiri→kanan.
+- **Ponsel & tablet (< 1024 px):** panel di bawah, setinggi yang dibutuhkan isinya; MAUNG menempati sisa ruang di atasnya (minimal 120 px, `grid-template-rows: minmax(…, 1fr) auto`). Zona itu diukur per babak dan kamera membingkai MAUNG ke zona babak aktif (diinterpolasi saat transisi, ukurannya dibatasi). Daftar di kartu dipersingkat (mis. 2 transaksi terbaru) — daftar lengkap satu ketukan lagi.
+- Panel yang sudah pudar tidak menerima ketukan. Kartu yang belum tampil tetap terbaca screen reader; bila difokus dengan keyboard, halaman menggulir ke langkahnya.
+- Tidak ada konten setelah babak terakhir (footer berada di panelnya), sehingga stage terakhir tidak pernah terlepas ke atas MAUNG.
+- Langit (`.scene-sky`) berlapis: glow hangat di belakang MAUNG, dua sapuan warna yang berganti per babak (amber; ungu; teal & koral; magenta & biru; emas; amber & ungu) lewat `@property` yang ditransisikan, tint atas, dan gradien dasar stage.
+- Diuji (Chrome, 7 kombinasi 320–1440 px × terang/gelap × landing/beranda, 61 posisi gulir masing-masing): panel yang terlihat tidak pernah masuk ke kotak MAUNG (dihitung dengan rumus pembingkaian yang sama dengan dunia 3D), tanpa horizontal overflow, tanpa error console.
 
 Kamera dibingkai otomatis: tiap babak mendefinisikan target, ukuran kotak yang harus terlihat, dan arah kamera; jaraknya dihitung dari FOV, lalu `setViewOffset` menggeser subjek ke ruang kosong layar. Semua transisi diredam (damped) agar tidak bergetar.
-
-- **Desktop (≥ 1024 px):** teks di kolom kiri, MAUNG di kolom kanan; kanvas penuh di belakang konten.
-- **Ponsel & tablet (< 1024 px):** MAUNG punya **tempat tetap** — panggung `fixed` di bawah top bar (tinggi `--band-h`, `clamp(170px, 34svh, 360px)`; layar pendek/landscape lebih kecil). Kanvas hanya seukuran panggung dan berada *di depan* konten dengan langitnya sendiri; babak-babak dimulai di bawah panggung dan bergulir *di bawahnya*, memudar di tepi bawahnya. Jadi teks tidak pernah menutupi MAUNG, berapa pun panjang isi babak. Panggung juga menahan ketukan sehingga tombol yang tersembunyi di bawahnya tidak tertekan; geser sentuh tetap menggulir halaman. Garis baca babak berada tepat di bawah panggung. Diuji dengan menggulir 15 posisi di 320/360/390/768 px: semua titik sampel di area MAUNG selalu milik panggung.
 
 ## Performa, reduced motion & fallback
 

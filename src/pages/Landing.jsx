@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, BarChart3, LogIn, Mic, PiggyBank, ShieldCheck, Sparkles } from "lucide-react";
 import ThemeToggle from "../components/ui/ThemeToggle";
-import ChapterRail, { Chapter, Kicker } from "../components/story/ChapterRail";
+import ChapterRail, { Chapter, Deck, Kicker, Step, StepDots } from "../components/story/ChapterRail";
 import ParsePreview from "../components/story/ParsePreview";
 import Logo from "../components/ui/Logo";
 import { startStory } from "../lib/scrollStory";
@@ -70,17 +70,33 @@ export default function Landing() {
           </div>
         </Chapter>
 
-        <Chapter index={1} labelledBy="l-voice" className="on-stage">
+        <Chapter index={1} steps={2} labelledBy="l-voice" className="on-stage">
           <Kicker n={2}>Catat dengan suara</Kicker>
           <h2 id="l-voice" className="chapter__title display reveal" style={{ "--i": 1 }}>
             Ucapkan, <span className="accent-italic">MAUNG catat.</span>
           </h2>
-          <p className="chapter__lead reveal" style={{ "--i": 2 }}>
-            Bahasa sehari-hari: “dua puluh lima ribu”, “25rb”, “1,5 juta”, “kemarin”. Coba sendiri di bawah.
-          </p>
-          <div className="panel reveal" style={{ "--i": 3 }}>
-            <ParsePreview />
-          </div>
+          <StepDots labels={["Cara kerja", "Coba sendiri"]} />
+          <Deck>
+            <Step n={0}>
+              <div className="panel">
+                <p className="deck__title">Bahasa sehari-hari</p>
+                <p className="muted">“dua puluh lima ribu”, “25rb”, “1,5 juta”, “kemarin” — MAUNG membaca nominal, jenis, kategori, dan tanggal, lalu kamu memeriksa sebelum menyimpan.</p>
+                <ul className="landing__promises" style={{ marginTop: "var(--sp-3)" }}>
+                  <li>
+                    <Mic size={18} aria-hidden="true" /> Tekan mikrofon dan bicara, atau ketik kalimatnya.
+                  </li>
+                  <li>
+                    <ShieldCheck size={18} aria-hidden="true" /> Bagian yang meragukan ditandai, tidak ditebak.
+                  </li>
+                </ul>
+              </div>
+            </Step>
+            <Step n={1}>
+              <div className="panel">
+                <ParsePreview />
+              </div>
+            </Step>
+          </Deck>
         </Chapter>
 
         <Chapter index={2} labelledBy="l-flow" className="on-stage">
@@ -122,32 +138,41 @@ export default function Landing() {
           </p>
         </Chapter>
 
-        <Chapter index={5} labelledBy="l-control" className="on-stage">
+        <Chapter index={5} steps={2} labelledBy="l-control" className="on-stage">
           <Kicker n={6}>Kendali</Kicker>
           <h2 id="l-control" className="chapter__title display reveal" style={{ "--i": 1 }}>
             Keuanganmu, <span className="accent-italic">tetap dalam kendalimu.</span>
           </h2>
-          <ul className="landing__promises reveal" style={{ "--i": 2 }}>
-            <li>
-              <ShieldCheck size={18} aria-hidden="true" /> Audio tidak direkam atau disimpan; kalimatmu dibaca di perangkat.
-            </li>
-            <li>
-              <ShieldCheck size={18} aria-hidden="true" /> Tidak ada transaksi yang tersimpan tanpa kamu periksa dulu (kecuali kamu menyalakan simpan otomatis).
-            </li>
-            <li>
-              <ShieldCheck size={18} aria-hidden="true" /> Tetap bisa dipakai tanpa suara: ketik kalimat atau isi formulir.
-            </li>
-          </ul>
-          <div className="hero__actions reveal" style={{ "--i": 3 }}>
-            <Link to="/register" className="btn btn--amber btn--lg">
-              Buat akun <ArrowRight size={18} aria-hidden="true" />
-            </Link>
-            <Link to="/login" className="btn btn--lg">
-              Masuk
-            </Link>
-          </div>
+          <Deck>
+            <Step n={0}>
+              <ul className="landing__promises">
+                <li>
+                  <ShieldCheck size={18} aria-hidden="true" /> Audio tidak direkam atau disimpan; kalimatmu dibaca di perangkat.
+                </li>
+                <li>
+                  <ShieldCheck size={18} aria-hidden="true" /> Tidak ada transaksi yang tersimpan tanpa kamu periksa dulu (kecuali kamu menyalakan simpan otomatis).
+                </li>
+                <li>
+                  <ShieldCheck size={18} aria-hidden="true" /> Tetap bisa dipakai tanpa suara: ketik kalimat atau isi formulir.
+                </li>
+              </ul>
+            </Step>
+            <Step n={1}>
+              <p className="chapter__lead" style={{ marginTop: 0 }}>
+                Gratis. Daftar dengan email, lalu catat transaksi pertamamu dalam satu kalimat.
+              </p>
+              <div className="hero__actions">
+                <Link to="/register" className="btn btn--amber btn--lg">
+                  Buat akun <ArrowRight size={18} aria-hidden="true" />
+                </Link>
+                <Link to="/login" className="btn btn--lg">
+                  Masuk
+                </Link>
+              </div>
+              <p className="story-footer">SI-MAUNG · Sistem Informasi Manajemen Keuangan</p>
+            </Step>
+          </Deck>
         </Chapter>
-        <footer className="story-footer">SI-MAUNG · Sistem Informasi Manajemen Keuangan</footer>
       </main>
     </div>
   );

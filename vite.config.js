@@ -65,12 +65,27 @@ function threeChunkManifest() {
 // https://vite.dev/config/
 export default defineConfig(({ command, mode, isPreview }) => {
   const env = loadEnv(mode, process.cwd(), "VITE_");
-  // Production (and `vite preview` of it) is served from https://syamaydev.github.io/SI-MAUNG/.
-  // Override with VITE_BASE_PATH=/ when hosting at a domain root. `npm run dev` uses "/".
-  const base = command === "build" || isPreview ? env.VITE_BASE_PATH || "/SI-MAUNG/" : "/";
+  // GitHub Pages (and `vite preview` of it) serves the app from /SI-MAUNG/; Vercel
+  // (process.env.VERCEL is set on its builders) serves it from the domain root.
+  // VITE_BASE_PATH overrides both. `npm run dev` uses "/".
+  const hostBase = process.env.VERCEL ? "/" : "/SI-MAUNG/";
+  const base = command === "build" || isPreview ? env.VITE_BASE_PATH || hostBase : "/";
+
+  // The Vercel ↔ Supabase integration names the PUBLIC client settings without the
+  // VITE_ prefix. Map exactly those two (URL + anon/publishable key) — never the
+  // service-role key or any other secret.
+  const pick = (...names) => names.map((n) => process.env[n]).find(Boolean);
+  const supabaseUrl = env.VITE_SUPABASE_URL || pick("NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL");
+  const supabaseKey =
+    env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    pick("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_ANON_KEY");
 
   return {
     base,
+    define: {
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(supabaseUrl || ""),
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(supabaseKey || ""),
+    },
     plugins: [react(), threeChunkManifest(), spaFallback()],
     build: {
       // three.js lives in its own lazy chunk (the 3D stage); keep the warning

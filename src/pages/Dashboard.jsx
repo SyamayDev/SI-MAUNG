@@ -10,7 +10,7 @@ import { ArrowDownLeft, ArrowRight, ArrowUpRight, BarChart3, Bot, History, Keybo
 import { useAuth } from "../context/AuthContext";
 import { useFinance } from "../context/FinanceContext";
 import { useModal } from "../context/ModalContext";
-import ChapterRail, { Chapter, Kicker } from "../components/story/ChapterRail";
+import ChapterRail, { Chapter, Deck, Kicker, Step, StepDots } from "../components/story/ChapterRail";
 import TransactionRow from "../components/transactions/TransactionRow";
 import CategoryIcon from "../components/ui/CategoryIcon";
 import ProgressRing from "../components/ui/ProgressRing";
@@ -136,108 +136,119 @@ export default function Dashboard() {
         </div>
       </Chapter>
 
-      {/* 02 — voice */}
-      <Chapter index={1} labelledBy="ch-voice" className="on-stage">
+      {/* 02 — voice: three steps that take turns in place */}
+      <Chapter index={1} steps={3} labelledBy="ch-voice" className="on-stage">
         <Kicker n={2}>Catat dengan suara</Kicker>
         <h2 id="ch-voice" className="chapter__title display reveal" style={{ "--i": 1 }}>
           Ucapkan, <span className="accent-italic">MAUNG catat.</span>
         </h2>
-        <p className="chapter__lead reveal" style={{ "--i": 2 }}>
-          Bicara seperti biasa. MAUNG membaca nominal, jenis, kategori, dan tanggal — kamu tinggal memeriksa sebelum menyimpan.
-        </p>
-        <div className="panel reveal" style={{ "--i": 3 }}>
-          <ol className="steps">
-            <li>
-              <div>
-                <strong>Ucapkan</strong>
-                <span>“Kemarin beli buku 45 ribu.”</span>
+        <StepDots labels={["Ucapkan", "Periksa", "Simpan"]} />
+        <Deck>
+          <Step n={0}>
+            <div className="panel">
+              <p className="deck__title">
+                <b>1</b> Ucapkan
+              </p>
+              <p className="muted">Bicara seperti biasa — “kemarin beli buku 45 ribu”. Atau coba salah satu kalimat:</p>
+              <div className="row" style={{ marginTop: "var(--sp-3)", gap: "var(--sp-2)" }}>
+                {EXAMPLE_PHRASES.slice(0, 3).map((p) => (
+                  <button key={p} type="button" className="chip" onClick={() => openCapture({ mode: "text", text: p })}>
+                    {p}
+                  </button>
+                ))}
               </div>
-            </li>
-            <li>
-              <div>
-                <strong>Periksa</strong>
-                <span>Bagian yang meragukan ditandai, bisa langsung diubah.</span>
+            </div>
+          </Step>
+          <Step n={1}>
+            <div className="panel">
+              <p className="deck__title">
+                <b>2</b> Periksa
+              </p>
+              <p className="muted">MAUNG membaca nominal, jenis, kategori, dan tanggal. Bagian yang meragukan ditandai dan bisa langsung kamu ubah — tidak ada yang tersimpan sebelum kamu setujui.</p>
+              <div className="deck__more">
+                <Button onClick={() => openCapture({ mode: "text" })}>
+                  <Keyboard size={16} aria-hidden="true" /> Coba ketik kalimat
+                </Button>
               </div>
-            </li>
-            <li>
-              <div>
-                <strong>Simpan</strong>
-                <span>Tersimpan ke akunmu setelah kamu menekan Simpan.</span>
-              </div>
-            </li>
-          </ol>
-          <hr className="divider" />
-          <p className="field__label">Coba salah satu kalimat:</p>
-          <div className="row" style={{ marginTop: "var(--sp-2)", gap: "var(--sp-2)" }}>
-            {EXAMPLE_PHRASES.slice(0, 3).map((p) => (
-              <button key={p} type="button" className="chip" onClick={() => openCapture({ mode: "text", text: p })}>
-                {p}
-              </button>
-            ))}
-          </div>
-          <hr className="divider" />
-          <p className="field__label">Terakhir dicatat lewat suara</p>
-          {voiceTx.length ? (
-            <ul className="tx-list">
-              {voiceTx.map((tx) => (
-                <TransactionRow key={tx.id} tx={tx} />
-              ))}
-            </ul>
-          ) : (
-            <p className="muted" style={{ fontSize: "var(--fs-sm)", marginTop: "var(--sp-1)" }}>
-              Belum ada catatan suara.{" "}
-              <button type="button" className="link-btn" onClick={() => openCapture()}>
-                Coba sekarang
-              </button>
-            </p>
-          )}
-        </div>
+            </div>
+          </Step>
+          <Step n={2}>
+            <div className="panel">
+              <p className="deck__title">
+                <b>3</b> Simpan
+              </p>
+              <p className="muted">Tersimpan ke akunmu setelah kamu menekan Simpan.</p>
+              <p className="field__label" style={{ marginTop: "var(--sp-3)" }}>
+                Terakhir dicatat lewat suara
+              </p>
+              {voiceTx.length ? (
+                <ul className="tx-list">
+                  {voiceTx.slice(0, 1).map((tx) => (
+                    <TransactionRow key={tx.id} tx={tx} />
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted" style={{ fontSize: "var(--fs-sm)", marginTop: "var(--sp-1)" }}>
+                  Belum ada catatan suara.{" "}
+                  <button type="button" className="link-btn" onClick={() => openCapture()}>
+                    Coba sekarang
+                  </button>
+                </p>
+              )}
+            </div>
+          </Step>
+        </Deck>
       </Chapter>
 
-      {/* 03 — inflow / outflow this month */}
-      <Chapter index={2} labelledBy="ch-flow" className="on-stage">
+      {/* 03 — inflow / outflow this month, then the latest records */}
+      <Chapter index={2} steps={2} labelledBy="ch-flow" className="on-stage">
         <Kicker n={3}>Arus {month.label}</Kicker>
         <h2 id="ch-flow" className="chapter__title display reveal" style={{ "--i": 1 }}>
           Setiap arus <span className="accent-italic">punya arti.</span>
         </h2>
-        <div className="panel reveal" style={{ "--i": 2 }}>
-          {loading ? (
-            <div className="stack">
-              <Skeleton h={22} />
-              <Skeleton h={22} />
-              <Skeleton h={120} />
+        <StepDots labels={["Masuk & keluar", "Transaksi terbaru"]} />
+        <Deck>
+          <Step n={0}>
+            <div className="panel">
+              {loading ? (
+                <div className="stack">
+                  <Skeleton h={22} />
+                  <Skeleton h={22} />
+                </div>
+              ) : (
+                <div className="flow-compare" aria-label={`Arus ${month.label}`}>
+                  <div className="flow-bar">
+                    <div className="flow-bar__head">
+                      <span>
+                        <ArrowDownLeft size={14} aria-hidden="true" style={{ display: "inline", verticalAlign: "-2px" }} /> Pemasukan
+                      </span>
+                      <span className="text-income num">{formatSigned(month.income, "income")}</span>
+                    </div>
+                    <div className="flow-bar__track">
+                      <div className="flow-bar__fill flow-bar__fill--income" style={{ width: `${(month.income / maxFlow) * 100}%` }} />
+                    </div>
+                  </div>
+                  <div className="flow-bar">
+                    <div className="flow-bar__head">
+                      <span>
+                        <ArrowUpRight size={14} aria-hidden="true" style={{ display: "inline", verticalAlign: "-2px" }} /> Pengeluaran
+                      </span>
+                      <span className="text-expense num">{formatSigned(month.expense, "expense")}</span>
+                    </div>
+                    <div className="flow-bar__track">
+                      <div className="flow-bar__fill flow-bar__fill--expense" style={{ width: `${(month.expense / maxFlow) * 100}%` }} />
+                    </div>
+                  </div>
+                  <p className="net-line">
+                    <span>Selisih {month.label}</span>
+                    <span className={`num ${month.net >= 0 ? "text-income" : "text-expense"}`}>{formatRupiah(month.net)}</span>
+                  </p>
+                </div>
+              )}
             </div>
-          ) : (
-            <>
-              <div className="flow-compare" aria-label={`Arus ${month.label}`}>
-                <div className="flow-bar">
-                  <div className="flow-bar__head">
-                    <span>
-                      <ArrowDownLeft size={14} aria-hidden="true" style={{ display: "inline", verticalAlign: "-2px" }} /> Pemasukan
-                    </span>
-                    <span className="text-income num">{formatSigned(month.income, "income")}</span>
-                  </div>
-                  <div className="flow-bar__track">
-                    <div className="flow-bar__fill flow-bar__fill--income" style={{ width: `${(month.income / maxFlow) * 100}%` }} />
-                  </div>
-                </div>
-                <div className="flow-bar">
-                  <div className="flow-bar__head">
-                    <span>
-                      <ArrowUpRight size={14} aria-hidden="true" style={{ display: "inline", verticalAlign: "-2px" }} /> Pengeluaran
-                    </span>
-                    <span className="text-expense num">{formatSigned(month.expense, "expense")}</span>
-                  </div>
-                  <div className="flow-bar__track">
-                    <div className="flow-bar__fill flow-bar__fill--expense" style={{ width: `${(month.expense / maxFlow) * 100}%` }} />
-                  </div>
-                </div>
-                <p className="net-line">
-                  <span>Selisih {month.label}</span>
-                  <span className={`num ${month.net >= 0 ? "text-income" : "text-expense"}`}>{formatRupiah(month.net)}</span>
-                </p>
-              </div>
-              <hr className="divider" />
+          </Step>
+          <Step n={1}>
+            <div className="panel">
               <div className="panel__head" style={{ marginBottom: 0 }}>
                 <h3 className="panel__title" style={{ fontSize: "var(--fs-md)" }}>
                   Transaksi terbaru
@@ -248,74 +259,87 @@ export default function Dashboard() {
               </div>
               {recent.length ? (
                 <ul className="tx-list">
-                  {recent.map((tx) => (
+                  {recent.slice(0, 3).map((tx) => (
                     <TransactionRow key={tx.id} tx={tx} onEdit={openEdit} />
                   ))}
                 </ul>
               ) : (
                 <p className="muted" style={{ fontSize: "var(--fs-sm)", marginTop: "var(--sp-2)" }}>
-                  Belum ada transaksi. Catat yang pertama — misalnya uang makan hari ini.
+                  {loading ? "Memuat…" : "Belum ada transaksi. Catat yang pertama — misalnya uang makan hari ini."}
                 </p>
               )}
-            </>
-          )}
-        </div>
+            </div>
+          </Step>
+        </Deck>
       </Chapter>
 
-      {/* 04 — patterns (categories + computed insights) */}
-      <Chapter index={3} labelledBy="ch-pattern" className="on-stage">
+      {/* 04 — patterns: categories, then the computed insights */}
+      <Chapter index={3} steps={categories.length && insights.length ? 2 : 1} labelledBy="ch-pattern" className="on-stage">
         <Kicker n={4}>Pola pengeluaran</Kicker>
         <h2 id="ch-pattern" className="chapter__title display reveal" style={{ "--i": 1 }}>
           Lihat pola, <span className="accent-italic">bukan tebakan.</span>
         </h2>
-        <div className="panel reveal" style={{ "--i": 2 }}>
-          {categories.length ? (
-            <>
-              <p className="panel__sub" style={{ marginBottom: "var(--sp-3)" }}>
-                Pengeluaran per kategori, {month.label}
-              </p>
-              <ul className="cat-bars">
-                {categories.slice(0, 5).map((c) => (
-                  <li key={c.category} className="cat-bar">
-                    <CategoryIcon category={c.category} size={18} />
-                    <div className="cat-bar__body">
-                      <div className="cat-bar__head">
-                        <strong>{c.label}</strong>
-                        <span>
-                          {formatRupiah(c.amount)} · {formatPercent(c.share)}
-                        </span>
-                      </div>
-                      <div className="cat-bar__track">
-                        <div className="cat-bar__fill" style={{ width: `${c.share * 100}%`, "--cat": categoryColor(c.category) }} />
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              {insights.length > 0 && (
+        {categories.length > 0 && insights.length > 0 && <StepDots labels={["Kategori", "Wawasan"]} />}
+        <Deck>
+          <Step n={0}>
+            <div className="panel">
+              {categories.length ? (
                 <>
-                  <hr className="divider" />
-                  <div className="stack" style={{ gap: "var(--sp-2)" }}>
-                    {insights.map((i) => (
-                      <div key={i.id} className={`insight insight--${i.tone}`}>
-                        <p className="insight__title">{i.title}</p>
-                        <p className="insight__detail">{i.detail}</p>
-                        <p className="insight__basis">Dasar: {i.basis}</p>
-                      </div>
+                  <p className="panel__sub" style={{ marginBottom: "var(--sp-3)" }}>
+                    Pengeluaran per kategori, {month.label}
+                  </p>
+                  <ul className="cat-bars">
+                    {categories.slice(0, 5).map((c) => (
+                      <li key={c.category} className="cat-bar">
+                        <CategoryIcon category={c.category} size={18} />
+                        <div className="cat-bar__body">
+                          <div className="cat-bar__head">
+                            <strong>{c.label}</strong>
+                            <span>
+                              {formatRupiah(c.amount)} · {formatPercent(c.share)}
+                            </span>
+                          </div>
+                          <div className="cat-bar__track">
+                            <div className="cat-bar__fill" style={{ width: `${c.share * 100}%`, "--cat": categoryColor(c.category) }} />
+                          </div>
+                        </div>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </>
+              ) : (
+                <p className="muted">{loading ? "Memuat…" : `Belum ada pengeluaran di ${month.label}, jadi belum ada pola yang bisa dibaca. Pola muncul setelah kamu mencatat beberapa pengeluaran.`}</p>
               )}
-            </>
-          ) : (
-            <p className="muted">{loading ? "Memuat…" : `Belum ada pengeluaran di ${month.label}, jadi belum ada pola yang bisa dibaca. Pola muncul setelah kamu mencatat beberapa pengeluaran.`}</p>
+              {!(categories.length && insights.length) && (
+                <div className="deck__more">
+                  <Button onClick={() => navigate("/analytics")}>
+                    <BarChart3 size={16} aria-hidden="true" /> Buka analitik
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Step>
+          {categories.length > 0 && insights.length > 0 && (
+            <Step n={1}>
+              <div className="panel">
+                <div className="stack" style={{ gap: "var(--sp-2)" }}>
+                  {insights.slice(0, 2).map((i) => (
+                    <div key={i.id} className={`insight insight--${i.tone}`}>
+                      <p className="insight__title">{i.title}</p>
+                      <p className="insight__detail">{i.detail}</p>
+                      <p className="insight__basis">Dasar: {i.basis}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="deck__more">
+                  <Button onClick={() => navigate("/analytics")}>
+                    <BarChart3 size={16} aria-hidden="true" /> Buka analitik
+                  </Button>
+                </div>
+              </div>
+            </Step>
           )}
-          <div className="row" style={{ marginTop: "var(--sp-4)" }}>
-            <Button onClick={() => navigate("/analytics")}>
-              <BarChart3 size={16} aria-hidden="true" /> Buka analitik
-            </Button>
-          </div>
-        </div>
+        </Deck>
       </Chapter>
 
       {/* 05 — savings goals */}
@@ -340,7 +364,7 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
-              {goals.slice(0, 3).map((g) => {
+              {goals.slice(0, 2).map((g) => {
                 const ratio = Math.min(1, (Number(g.current_amount) || 0) / (Number(g.target_amount) || 1));
                 return (
                   <div key={g.id} className="goal-mini">
@@ -358,7 +382,7 @@ export default function Dashboard() {
           ) : (
             <p className="muted">{goalsStatus === "ready" ? "Belum ada tujuan tabungan. Tentukan satu target — MAUNG akan menghitung berapa yang perlu disisihkan tiap bulan." : "Memuat…"}</p>
           )}
-          <div className="row" style={{ marginTop: "var(--sp-4)" }}>
+          <div className="deck__more">
             <Button variant="primary" onClick={() => navigate("/savings", { state: progress ? undefined : { create: true } })}>
               <PiggyBank size={16} aria-hidden="true" /> {progress ? "Kelola tabungan" : "Buat tujuan"}
             </Button>
@@ -372,10 +396,10 @@ export default function Dashboard() {
         <h2 id="ch-control" className="chapter__title display reveal" style={{ "--i": 1 }}>
           Keuanganmu, <span className="accent-italic">tetap dalam kendalimu.</span>
         </h2>
-        <div className="quick-grid reveal" style={{ "--i": 2, marginTop: "var(--sp-6)" }}>
+        <div className="quick-grid reveal" style={{ "--i": 2, marginTop: "var(--sp-5)" }}>
           <button type="button" className="quick-card quick-card--amber" onClick={() => openCapture()}>
             <Mic size={22} aria-hidden="true" />
-            Catat dengan suara
+            Catat
             <small>Satu kalimat, langsung jadi catatan.</small>
           </button>
           <Link to="/transactions" className="quick-card">
@@ -404,8 +428,8 @@ export default function Dashboard() {
             <small>Profil, suara, tampilan.</small>
           </Link>
         </div>
-        <p className="story-footer" style={{ padding: "var(--sp-8) 0 0", textAlign: "left" }}>
-          <ArrowRight size={12} aria-hidden="true" style={{ display: "inline" }} /> Tips: tombol mikrofon selalu ada di menu — di ponsel tepat di tengah bawah.
+        <p className="story-footer" style={{ padding: "var(--sp-5) 0 0", textAlign: "left" }}>
+          <ArrowRight size={12} aria-hidden="true" style={{ display: "inline" }} /> Tombol mikrofon selalu ada di menu — di ponsel tepat di tengah bawah.
         </p>
       </Chapter>
     </div>
