@@ -1,0 +1,294 @@
+.authContainer {
+    font-family: 'Arial Black', Arial, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    line-height: 1.4;
+    position: relative;
+    overflow: auto; /* Allow scrolling if content overflows */
+}
+
+.futureCard {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 24px;
+    padding: 100px 40px 48px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+.loginContainer {
+    width: 100%;
+    max-width: 420px; /* Reduced for more compact form */
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.retroField {
+    position: relative;
+    margin-bottom: 20px; /* Reduced margin */
+}
+.mascotContainer {
+    width: 150px;
+    height: 150px;
+    margin-bottom: -75px; /* Pulls the card up */
+    position: relative;
+    z-index: 10;
+}
+
+.mascotImage {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.15));
+}
+.futureCard::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(45deg, #0d6efd, #ff1b7f, #ffc107, #0d6efd);
+    background-size: 400% 400%;
+    animation: chromeShift 6s ease-in-out infinite;
+    border-radius: 24px;
+    z-index: -2;
+    opacity: 0.5;
+}
+
+@keyframes chromeShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.futureCard::after {
+    content: none; /* Removed inner border/bg */
+}
+
+.chromeHeader {
+    text-align: center;
+    margin-bottom: 30px; /* Reduced margin */
+}
+
+.y2kTitle {
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.titleChrome {
+    background: linear-gradient(45deg, #333, #555);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.retroSubtitle {
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.fieldChrome {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #ced4da;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.fieldChrome:focus-within {
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.2);
+    border-color: #86b7fe;
+}
+
+.chromeBorder {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(45deg, #0d6efd, #ff1b7f, #ffc107, #0d6efd);
+    background-size: 400% 400%;
+    animation: borderShift 4s ease-in-out infinite;
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.fieldChrome:focus-within .chromeBorder {
+    opacity: 1;
+}
+
+@keyframes borderShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.retroField input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 16px 16px; /* Reduced padding */
+    color: #212529;
+    font-size: 15px;
+    font-weight: 500;
+    outline: none;
+    position: relative;
+    z-index: 2;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.retroField input::placeholder {
+    color: transparent;
+}
+
+.retroField label {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 500;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    z-index: 3;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background-color: #fff;
+    padding: 0 4px;
+}
+
+.retroField input:focus + label,
+.retroField input:not(:placeholder-shown) + label {
+    top: 0;
+    font-size: 11px;
+    color: #0d6efd;
+}
+
+.fieldHologram {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #0d6efd, #ff1b7f);
+    transition: width 0.3s ease;
+    z-index: 2;
+}
+
+.fieldChrome:focus-within .fieldHologram {
+    width: 100%;
+}
+
+.futureOptions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px; /* Reduced margin */
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.futureLink {
+    color: #0d6efd;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.futureLink:hover {
+    color: #ff1b7f;
+}
+
+.retroButton {
+    width: 100%;
+    background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 900;
+    position: relative;
+    margin-bottom: 24px; /* Reduced margin */
+    min-height: 52px; /* Reduced height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.2);
+}
+
+.retroButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(0, 123, 255, 0.3);
+}
+
+.buttonText {
+    position: relative;
+    z-index: 2;
+}
+
+.retroDivider {
+    display: flex;
+    align-items: center;
+    margin: 24px 0; /* Reduced margin */
+    gap: 16px;
+}
+
+.dividerChrome {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);
+}
+
+.dividerText {
+    color: #6c757d;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.futureSignup {
+    text-align: center;
+    font-size: 13px;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.signupText {
+    margin-right: 6px;
+}
+
+.retroError {
+    color: #dc3545;
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    height: 14px; /* Reserve space */
+}
+

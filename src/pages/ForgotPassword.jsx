@@ -1,65 +1,66 @@
 ﻿import { useState } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import { AlertCircle, MailCheck } from "lucide-react";
+import AuthLayout from "../components/auth/AuthLayout";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
+import { useAuth } from "../context/AuthContext";
+import ConfigMissing from "../components/layouts/ConfigMissing";
 
-function ForgotPassword() {
+export default function ForgotPassword() {
+  const { sendPasswordResetEmail, status } = useAuth();
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setError("");
-    setMessage("");
-    setLoading(true);
+  if (status === "unconfigured") return <ConfigMissing />;
 
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + "/reset-password",
-    });
-
-    setLoading(false);
-
-    if (error) {
-      setError(error.message);
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    if (busy) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Format email tidak valid.");
       return;
     }
-
-    setMessage("Permintaan reset password berhasil. Cek email Anda.");
+    setBusy(true);
+    setError("");
+    const { error: err } = await sendPasswordResetEmail(email.trim());
+    setBusy(false);
+    if (err) setError(err);
+    else setSent(true);
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-logo">🔒</div>
-
-        <h1>Lupa Password</h1>
-        <p>Masukkan email untuk menerima tautan reset password.</p>
-
-        {error && <div className="auth-error">{error}</div>}
-        {message && <div className="auth-success">{message}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="nama@email.com"
-            required
-          />
-
-          <button type="submit" disabled={loading}>
-            {loading ? "Mengirim..." : "Kirim tautan reset"}
-          </button>
-        </form>
-
-        <p className="auth-footer">
-          Kembali ke <Link to="/login">Masuk</Link>
+    <AuthLayout
+      title="Lupa kata sandi"
+      subtitle="Kami kirim tautan untuk membuat kata sandi baru."
+      art="images/empty-state-mascot.webp"
+      footer={
+        <Link to="/login" className="link-btn">
+          Kembali ke halaman masuk
+        </Link>
+      }
+    >
+      {sent ? (
+        <p className="callout callout--success" role="status">
+          <MailCheck size={18} aria-hidden="true" />
+          <span>Jika email itu terdaftar, tautan atur ulang sudah dikirim. Periksa juga folder spam.</span>
         </p>
-      </div>
-    </div>
+      ) : (
+        <form className="stack" onSubmit={onSubmit} noValidate>
+          {error && (
+            <p className="callout callout--error" role="alert">
+              <AlertCircle size={18} aria-hidden="true" />
+              {error}
+            </p>
+          )}
+          <Input id="email" type="email" label="Email" autoComplete="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Button type="submit" variant="primary" size="lg" block loading={busy}>
+            Kirim tautan
+          </Button>
+        </form>
+      )}
+    </AuthLayout>
   );
 }
-
-export default ForgotPassword;

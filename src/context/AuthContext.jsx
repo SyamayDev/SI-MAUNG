@@ -1,180 +1,165 @@
-﻿import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+﻿import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { appUrl, isSupabaseConfigured, supabase } from "../lib/supabase";
+import { toUserMessage } from "../lib/errors";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
+
+async function fetchOrCreateProfile(user) {
+  const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+  if (error) return { profile: null, error };
+  if (data) return { profile: data, error: null };
+  // No profile row yet (e.g. the sign-up trigger is missing): create it — RLS allows id = auth.uid().
+  const created = await supabase
+    .from("profiles")
+    .upsert({ id: user.id, full_name: user.user_metadata?.full_name || null, onboarding_completed: false }, { onConflict: "id" })
+    .select()
+    .single();
+  return { profile: created.data || null, error: created.error };
+}
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
+  const [status, setStatus] = useState(isSupabaseConfigured ? "loading" : "unconfigured"); // loading | signedIn | signedOut | unconfigured
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [profileState, setProfileState] = useState({ for: null, status: "idle", error: "" });
+  const [recovery, setRecovery] = useState(false);
+
+  const user = session?.user ?? null;
+  const userId = user?.id ?? null;
 
   useEffect(() => {
-    let mounted = true;
-
-    async function loadProfile(userId) {
-      if (!userId) {
-        setProfile(null);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (!mounted) {
-        return;
-      }
-
-      if (error) {
-        console.warn(
-          "Profil tidak ditemukan atau error saat memuat profile:",
-          error.message
-        );
-        setProfile(null);
-        return;
-      }
-
-      setProfile(data);
-    }
-
-    async function getInitialSession() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!mounted) {
-        return;
-      }
-
-      setSession(session ?? null);
-      setUser(session?.user ?? null);
-
-      if (session?.user?.id) {
-        await loadProfile(session.user.id);
-      }
-
-      setLoading(false);
-    }
-
-    getInitialSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!mounted) {
-        return;
-      }
-
-      setSession(session ?? null);
-      setUser(session?.user ?? null);
-
-      if (session?.user?.id) {
-        await loadProfile(session.user.id);
-      } else {
-        setProfile(null);
-      }
+    if (!supabase) return undefined;
+    let alive = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!alive) return;
+      setSession(data.session ?? null);
+      setStatus(data.session ? "signedIn" : "signedOut");
     });
-
+    // Keep this callback synchronous: awaiting Supabase calls inside it can deadlock the auth lock.
+    const { data } = supabase.auth.onAuthStateChange((event, next) => {
+      if (!alive) return;
+      if (event === "PASSWORD_RECOVERY") setRecovery(true);
+      if (event === "SIGNED_OUT") setRecovery(false);
+      setSession(next ?? null);
+      setStatus(next ? "signedIn" : "signedOut");
+    });
     return () => {
-      mounted = false;
-      subscription.unsubscribe();
+      alive = false;
+      data.subscription.unsubscribe();
     };
   }, []);
 
-  const register = async ({ email, password, fullName }) => {
+  const loadProfile = useCallback(async (u) => {
+    setProfileState({ for: u.id, status: "loading", error: "" });
+    const { profile: p, error } = await fetchOrCreateProfile(u);
+    if (error) {
+      setProfile(null);
+      setProfileState({ for: u.id, status: "error", error: toUserMessage(error, "Profil gagal dimuat.") });
+    } else {
+      setProfile(p);
+      setProfileState({ for: u.id, status: "ready", error: "" });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    // Deferred to a task so the profile query never runs inside the auth event dispatch.
+    const id = setTimeout(() => loadProfile(user), 0);
+    return () => clearTimeout(id);
+    // Only reload when the account changes, not on every token refresh.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, loadProfile]);
+
+  const profileStatus = !userId ? "idle" : profileState.for === userId ? profileState.status : "loading";
+  const currentProfile = userId && profileState.for === userId ? profile : null;
+
+  const register = useCallback(async ({ email, password, fullName }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: {
-          full_name: fullName,
-        },
-      },
+      options: { data: { full_name: fullName }, emailRedirectTo: appUrl("dashboard") },
     });
+    if (error) return { error: toUserMessage(error) };
+    // With email confirmation on, Supabase returns a user but no session.
+    return { needsConfirmation: !data.session };
+  }, []);
 
-    if (!error && data?.user?.id) {
-      await supabase.from("profiles").upsert({
-        id: data.user.id,
-        full_name: fullName,
-        onboarding_completed: false,
-        created_at: new Date().toISOString(),
-      });
-    }
+  const login = useCallback(async ({ email, password }) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error: error ? toUserMessage(error) : "" };
+  }, []);
 
-    return { data, error };
-  };
-
-  const login = async ({ email, password }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    return { data, error };
-  };
-
-  const logout = async () => {
+  const logout = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
-    return { error };
-  };
-  
-  const sendPasswordResetEmail = async (email) => {
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    return { data, error };
-  };
+    return { error: error ? toUserMessage(error) : "" };
+  }, []);
 
-  const updatePassword = async (newPassword) => {
-    const { data, error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-    return { data, error };
-  };
+  const sendPasswordResetEmail = useCallback(async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: appUrl("reset-password") });
+    return { error: error ? toUserMessage(error) : "" };
+  }, []);
 
-  const refreshProfile = async () => {
-    if (session?.user?.id) {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
+  const updatePassword = useCallback(async (password) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (!error) setRecovery(false);
+    return { error: error ? toUserMessage(error) : "" };
+  }, []);
 
-      if (!error) {
-        setProfile(data);
+  const updateProfile = useCallback(
+    async (changes) => {
+      if (!userId) return { error: "Anda belum masuk." };
+      const { data, error } = await supabase.from("profiles").update(changes).eq("id", userId).select().single();
+      if (error) return { error: toUserMessage(error, "Profil gagal disimpan.") };
+      setProfile(data);
+      if (changes.full_name !== undefined) {
+        // Keep auth metadata in sync (used as a fallback name); not critical if it fails.
+        await supabase.auth.updateUser({ data: { full_name: changes.full_name } });
       }
-    }
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        profile,
-        loading,
-        register,
-        login,
-        logout,
-        sendPasswordResetEmail,
-        updatePassword,
-        refreshProfile,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+      return { data };
+    },
+    [userId]
   );
+
+  const completeOnboarding = useCallback(
+    async ({ fullName, primaryGoal }) => {
+      if (!userId) return { error: "Anda belum masuk." };
+      const meta = await supabase.auth.updateUser({ data: { full_name: fullName, primary_goal: primaryGoal } });
+      if (meta.error) return { error: toUserMessage(meta.error) };
+      return updateProfile({ full_name: fullName, onboarding_completed: true });
+    },
+    [userId, updateProfile]
+  );
+
+  const retryProfile = useCallback(() => user && loadProfile(user), [user, loadProfile]);
+
+  const value = useMemo(
+    () => ({
+      status,
+      user,
+      session,
+      profile: currentProfile,
+      profileStatus,
+      profileError: profileState.for === userId ? profileState.error : "",
+      recovery,
+      displayName: currentProfile?.full_name || user?.user_metadata?.full_name || "",
+      register,
+      login,
+      logout,
+      sendPasswordResetEmail,
+      updatePassword,
+      updateProfile,
+      completeOnboarding,
+      retryProfile,
+    }),
+    [status, user, session, currentProfile, profileStatus, profileState, userId, recovery, register, login, logout, sendPasswordResetEmail, updatePassword, updateProfile, completeOnboarding, retryProfile]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth harus digunakan di dalam AuthProvider");
-  }
-
+  if (!context) throw new Error("useAuth harus digunakan di dalam AuthProvider");
   return context;
 }

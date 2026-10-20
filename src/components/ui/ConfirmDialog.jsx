@@ -1,46 +1,18 @@
-function ConfirmDialog({
-  open,
-  title,
-  message,
-  onConfirm,
-  onCancel,
-  confirmLabel = "Ya",
-  cancelLabel = "Batal",
-}) {
-  if (!open) return null;
+import Dialog from "./Dialog";
+import Button from "./Button";
 
+export default function ConfirmDialog({ open, title, message, confirmLabel = "Ya, lanjutkan", cancelLabel = "Batal", tone = "danger", busy = false, onConfirm, onCancel }) {
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div
-        className="modal-card"
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: 420 }}
-      >
-        <div className="modal-header">
-          <div>
-            <h2>{title}</h2>
-            <p style={{ margin: 0, color: "#6d6c7a" }}>{message}</p>
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 10,
-            marginTop: 18,
-          }}
-        >
-          <button className="action-button" onClick={onCancel}>
-            {cancelLabel}
-          </button>
-          <button className="action-button delete" onClick={onConfirm}>
-            {confirmLabel}
-          </button>
-        </div>
+    <Dialog open={open} onClose={busy ? undefined : onCancel} dismissible={!busy} title={title} width={440}>
+      <p className="muted">{message}</p>
+      <div className="dialog__actions">
+        <Button onClick={onCancel} disabled={busy} data-autofocus>
+          {cancelLabel}
+        </Button>
+        <Button variant={tone === "danger" ? "danger" : "primary"} onClick={onConfirm} loading={busy}>
+          {confirmLabel}
+        </Button>
       </div>
-    </div>
+    </Dialog>
   );
 }
-
-export default ConfirmDialog;

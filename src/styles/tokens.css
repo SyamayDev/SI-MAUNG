@@ -1,0 +1,121 @@
+/*
+ * SI-MAUNG design tokens — "MAUNG: Money in Motion"
+ * Midnight ink for structure, warm ivory paper for reading, tiger amber as the
+ * brand accent. Income/expense always pair colour with a sign, icon and label.
+ */
+:root {
+  /* Ink (structure, text, night surfaces) */
+  --c-ink: #0e1533;
+  --c-ink-2: #172150;
+  --c-ink-3: #24326f;
+  --c-ink-soft: #444d72;
+  --c-ink-mute: #5f6686;
+
+  /* Paper (reading surfaces) */
+  --c-paper: #fbf6ec;
+  --c-surface: #fffdf8;
+  --c-surface-2: #f6efe1;
+  --c-surface-3: #efe5d1;
+  --c-line: #e6dbc6;
+  --c-line-strong: #cfc0a3;
+
+  /* Brand */
+  --c-amber: #f2a516;
+  --c-amber-deep: #dd8b00;
+  --c-amber-ink: #874f00;
+  --c-amber-soft: #fdecc8;
+  --c-stripe: #2e1d12;
+  --c-cream: #fff3dc;
+
+  /* Money semantics (text-safe on paper ≥ 4.5:1) */
+  --c-income: #0a7559;
+  --c-income-fill: #14a07c;
+  --c-income-soft: #d9f1e7;
+  --c-expense: #be343a;
+  --c-expense-fill: #e2564b;
+  --c-expense-soft: #fbe1dc;
+  --c-warn: #8f5a00;
+  --c-warn-soft: #fff1cf;
+
+  /* Night (story stage, sidebar) */
+  --c-night-0: #070b1f;
+  --c-night-1: #0d1436;
+  --c-night-2: #18225a;
+  --c-on-night: #fff8ea;
+  --c-on-night-soft: #cdd1e8;
+  --c-on-night-mute: #9ca3c6;
+
+  --c-focus: #1f43c9;
+
+  /* Type */
+  --font-display: "Fraunces Variable", "Fraunces", Georgia, "Times New Roman", serif;
+  --font-ui: "Manrope Variable", "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: 1.125rem;
+  --fs-lg: 1.3rem;
+  --fs-xl: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  --fs-2xl: clamp(1.9rem, 1.35rem + 2.4vw, 2.9rem);
+  --fs-3xl: clamp(2.3rem, 1.4rem + 3.8vw, 4.2rem);
+  --fs-display: clamp(2.6rem, 1.3rem + 5.4vw, 5.6rem);
+  --lh-tight: 1.05;
+  --lh-snug: 1.25;
+  --lh-body: 1.6;
+
+  /* Space (4px base) */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.25rem;
+  --sp-6: 1.5rem;
+  --sp-8: 2rem;
+  --sp-10: 2.5rem;
+  --sp-12: 3rem;
+  --sp-16: 4rem;
+  --gutter: clamp(1rem, 3.6vw, 2.5rem);
+
+  /* Shape */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-xl: 30px;
+  --r-pill: 999px;
+
+  /* Depth (warm-tinted shadows) */
+  --sh-1: 0 1px 2px rgb(46 29 18 / 0.06), 0 1px 1px rgb(46 29 18 / 0.04);
+  --sh-2: 0 10px 28px -14px rgb(14 21 51 / 0.28), 0 2px 6px -2px rgb(14 21 51 / 0.08);
+  --sh-3: 0 30px 70px -30px rgb(7 11 31 / 0.55), 0 8px 20px -10px rgb(7 11 31 / 0.25);
+
+  /* Layers */
+  --z-stage: 0;
+  --z-content: 1;
+  --z-sticky: 20;
+  --z-nav: 50;
+  --z-fab: 60;
+  --z-dialog: 100;
+  --z-toast: 120;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.5, 0.64, 1);
+  --dur-1: 120ms;
+  --dur-2: 220ms;
+  --dur-3: 420ms;
+
+  /* Shell */
+  --sidebar-w: 260px;
+  --topbar-h: 64px;
+  --bottomnav-h: 72px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --tap: 44px;
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --topbar-h: 58px;
+  }
+}

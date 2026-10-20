@@ -1,17 +1,28 @@
-import React from 'react';
-import styles from './Button.module.css';
+import { forwardRef } from "react";
 
-const Button = ({ children, onClick, variant = 'primary', size = 'md', className = '', disabled = false, type = 'button' }) => {
+/**
+ * variant: primary | amber | secondary | ghost | danger — size: sm | md | lg
+ * `loading` keeps the label width stable and blocks repeated clicks.
+ */
+const Button = forwardRef(function Button(
+  { variant = "secondary", size = "md", block = false, loading = false, className = "", type = "button", disabled, children, ...props },
+  ref
+) {
+  const classes = [
+    "btn",
+    variant !== "secondary" && `btn--${variant}`,
+    size !== "md" && `btn--${size}`,
+    block && "btn--block",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
   return (
-    <button
-      type={type}
-      onClick={onClick}
-      className={`${styles.button} ${styles[variant]} ${styles[size]} ${className}`}
-      disabled={disabled}
-    >
+    <button ref={ref} type={type} className={classes} disabled={disabled || loading} aria-busy={loading || undefined} {...props}>
+      {loading && <span className="spinner" aria-hidden="true" />}
       {children}
     </button>
   );
-};
+});
 
 export default Button;

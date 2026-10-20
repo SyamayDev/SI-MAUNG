@@ -3,22 +3,25 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://syamaydev.github.io/si-maung/",
+  "homepage": "https://syamaydev.github.io/SI-MAUNG/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test": "node --test \"src/**/*.test.js\"",
     "preview": "vite preview",
     "deploy": "npm run build && gh-pages -d dist"
   },
   "dependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource-variable/manrope": "^5.3.0",
     "@supabase/supabase-js": "^2.110.8",
-    "inter-ui": "^4.1.1",
     "lucide-react": "^1.26.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-router-dom": "^7.18.1",
-    "recharts": "^3.10.0"
+    "react-router-dom": "^7.18.4",
+    "recharts": "^3.10.0",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

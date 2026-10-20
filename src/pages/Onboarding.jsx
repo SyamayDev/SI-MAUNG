@@ -1,158 +1,135 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import styles from './Onboarding.module.css';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
-import { Check, ShieldCheck, Zap, Target } from 'lucide-react';
+import { useState } from "react";
+import { AlertCircle, ArrowLeft, Check, Mic, PiggyBank, ShieldCheck, Target } from "lucide-react";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import Logo from "../components/ui/Logo";
+import { useAuth } from "../context/AuthContext";
+import { asset } from "../lib/assets";
 
-const TOTAL_STEPS = 4;
-
-const goals = [
-  { id: 'control_spending', label: 'Kontrol Pengeluaran', icon: ShieldCheck },
-  { id: 'save_more', label: 'Lebih Banyak Menabung', icon: Zap },
-  { id: 'track_finances', label: 'Hanya Lacak Keuangan', icon: Target },
+const GOALS = [
+  { id: "control_spending", label: "Mengontrol pengeluaran", icon: ShieldCheck },
+  { id: "save_more", label: "Menabung lebih banyak", icon: PiggyBank },
+  { id: "track_finances", label: "Sekadar mencatat keuangan", icon: Target },
 ];
 
-const Onboarding = () => {
-  const [step, setStep] = useState(1);
-  const [nickname, setNickname] = useState('');
-  const [primaryGoal, setPrimaryGoal] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { user, refreshProfile } = useAuth();
-  const navigate = useNavigate();
+const STEPS = [
+  { art: "images/onboarding-welcome.webp" },
+  { art: "images/onboarding-name.webp" },
+  { art: "images/onboarding-goals.webp" },
+  { art: "images/onboarding-finish.webp" },
+];
 
-  const handleNextStep = () => {
-    if (step < TOTAL_STEPS) {
-      setStep(step + 1);
-    }
-  };
+export default function Onboarding() {
+  const { completeOnboarding, displayName } = useAuth();
+  const [step, setStep] = useState(0);
+  const [name, setName] = useState(displayName || "");
+  const [goal, setGoal] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleFinish = async () => {
-    if (!user) return;
-    setLoading(true);
-
-    // Step 1: Update user metadata in auth.users
-    // This is often linked via a trigger to the public.profiles table
-    const { error: userError } = await supabase.auth.updateUser({
-      data: { 
-        full_name: nickname,
-        primary_goal: primaryGoal
-      } 
-    });
-
-    if (userError) {
-      console.error('Error updating user metadata:', userError);
-      // You should show a toast notification here
-      setLoading(false);
-      return;
-    }
-
-    // Step 2: Update the onboarding status in public.profiles
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ onboarding_completed: true })
-      .eq('id', user.id);
-
-    if (profileError) {
-      console.error('Error updating profile:', profileError);
-      // You should show a toast notification here
-      setLoading(false);
-    } else {
-      await refreshProfile();
-      // The ProtectedRoute will handle the redirect automatically
-      // navigate('/dashboard', { replace: true });
-    }
-  };
-
-  const progress = (step / TOTAL_STEPS) * 100;
-
-  const renderStep = () => {
-    switch (step) {
-      case 1:
-        return (
-          <>
-            <img src="/images/onboarding-welcome.webp" alt="Welcome" className={styles.illustration} />
-            <h1 className={styles.stepTitle}>Selamat Datang di SI MAUNG!</h1>
-            <p className={styles.stepDescription}>Asisten keuangan pribadi cerdas baru Anda. Mari kita siapkan hanya dalam satu menit.</p>
-            <div className={styles.stepActions}>
-              <Button onClick={handleNextStep} variant="primary" size="large">Mari Mulai</Button>
-            </div>
-          </>
-        );
-      case 2:
-        return (
-          <>
-            <img src="/images/onboarding-name.webp" alt="Nickname" className={styles.illustration} />
-            <h2 className={styles.stepTitle}>Kami harus memanggilmu apa?</h2>
-            <p className={styles.stepDescription}>SI MAUNG akan menggunakan nama ini untuk menyapa dan mempersonalisasi pengalaman Anda.</p>
-            <div className={styles.stepActions}>
-              <Input
-                placeholder="contoh: Alex"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                size="large"
-              />
-              <Button onClick={handleNextStep} disabled={!nickname.trim()} variant="primary" size="large">Lanjutkan</Button>
-            </div>
-          </>
-        );
-      case 3:
-        return (
-          <>
-            <img src="/images/onboarding-goals.webp" alt="Goals" className={styles.illustration} />
-            <h2 className={styles.stepTitle}>Apa tujuan utamamu?</h2>
-            <p className={styles.stepDescription}>Ini membantu kami fokus pada hal yang paling penting bagimu.</p>
-            <div className={styles.goalOptions}>
-              {goals.map(goal => (
-                <div
-                  key={goal.id}
-                  className={`${styles.goalOption} ${primaryGoal === goal.id ? styles.selected : ''}`}
-                  onClick={() => setPrimaryGoal(goal.id)}
-                >
-                  <div className={styles.goalIcon}><goal.icon size={20} /></div>
-                  <div className={styles.goalInfo}><h4>{goal.label}</h4></div>
-                  {primaryGoal === goal.id && <Check size={20} className={styles.checkIcon} />}
-                </div>
-              ))}
-            </div>
-            <div className={styles.stepActions}>
-              <Button onClick={handleNextStep} disabled={!primaryGoal} variant="primary" size="large">Lanjutkan</Button>
-            </div>
-          </>
-        );
-      case 4:
-        return (
-          <>
-            <img src="/images/onboarding-finish.webp" alt="All Set" className={styles.illustration} />
-            <h2 className={styles.stepTitle}>Kamu sudah siap, {nickname}!</h2>
-            <p className={styles.stepDescription}>Anda siap untuk mulai mengendalikan keuangan Anda dengan kekuatan AI dan suara.</p>
-            <div className={styles.stepActions}>
-              <Button onClick={handleFinish} loading={loading} variant="primary" size="large">
-                {loading ? 'Membawamu ke aplikasi...' : 'Menuju Dasbor'}
-              </Button>
-            </div>
-          </>
-        );
-      default:
-        return <div>Invalid step</div>;
-    }
+  const finish = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    const { error: err } = await completeOnboarding({ fullName: name.trim(), primaryGoal: goal });
+    setBusy(false);
+    if (err) setError(err);
+    // On success the profile says onboarding_completed → the router opens the dashboard.
   };
 
   return (
-    <div className={styles.onboardingContainer}>
-      <Card className={styles.onboardingCard}>
-        <div className={styles.progressBarContainer}>
-          <div className={styles.progressBar} style={{ width: `${progress}%` }}></div>
+    <div className="onboarding on-night">
+      <header className="onboarding__bar">
+        <Logo size={36} />
+        <p className="eyebrow" aria-live="polite">
+          Langkah {step + 1} dari {STEPS.length}
+        </p>
+      </header>
+      <div className="onboarding__progress" aria-hidden="true">
+        <span style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
+      </div>
+
+      <main className="onboarding__body">
+        <img className="onboarding__art" src={asset(STEPS[step].art)} alt="" width="320" height="420" key={step} />
+        <div className="onboarding__card panel">
+          {step === 0 && (
+            <>
+              <h1 className="onboarding__title">Halo, aku MAUNG.</h1>
+              <p className="muted">Aku membantu mencatat pemasukan dan pengeluaranmu — cukup dari satu kalimat. Siapkan dalam satu menit, ya.</p>
+              <Button variant="primary" size="lg" block onClick={() => setStep(1)} data-autofocus>
+                Mulai
+              </Button>
+            </>
+          )}
+
+          {step === 1 && (
+            <form
+              className="stack"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (name.trim()) setStep(2);
+              }}
+            >
+              <h1 className="onboarding__title">Aku panggil kamu siapa?</h1>
+              <Input id="nickname" label="Nama panggilan" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoComplete="given-name" autoFocus />
+              <div className="row">
+                <Button onClick={() => setStep(0)} aria-label="Kembali">
+                  <ArrowLeft size={18} aria-hidden="true" />
+                </Button>
+                <Button type="submit" variant="primary" size="lg" className="grow" disabled={!name.trim()}>
+                  Lanjut
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {step === 2 && (
+            <div className="stack">
+              <h1 className="onboarding__title">Apa fokus utamamu?</h1>
+              <div role="radiogroup" aria-label="Fokus utama" className="goal-options">
+                {GOALS.map(({ id, label, icon: Icon }) => (
+                  <button key={id} type="button" role="radio" aria-checked={goal === id} className="goal-option" onClick={() => setGoal(id)}>
+                    <Icon size={20} aria-hidden="true" />
+                    <span className="grow">{label}</span>
+                    {goal === id && <Check size={18} aria-hidden="true" />}
+                  </button>
+                ))}
+              </div>
+              <div className="row">
+                <Button onClick={() => setStep(1)} aria-label="Kembali">
+                  <ArrowLeft size={18} aria-hidden="true" />
+                </Button>
+                <Button variant="primary" size="lg" className="grow" disabled={!goal} onClick={() => setStep(3)}>
+                  Lanjut
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="stack">
+              <h1 className="onboarding__title">Siap, {name.trim().split(" ")[0]}!</h1>
+              <p className="muted">
+                Tekan tombol <Mic size={15} aria-hidden="true" style={{ display: "inline", verticalAlign: "-2px" }} /> kapan saja dan sebutkan transaksimu, misalnya “beli kopi 20 ribu”. Kamu selalu bisa memeriksa hasilnya sebelum tersimpan.
+              </p>
+              {error && (
+                <p className="callout callout--error" role="alert">
+                  <AlertCircle size={18} aria-hidden="true" />
+                  {error}
+                </p>
+              )}
+              <div className="row">
+                <Button onClick={() => setStep(2)} aria-label="Kembali" disabled={busy}>
+                  <ArrowLeft size={18} aria-hidden="true" />
+                </Button>
+                <Button variant="amber" size="lg" className="grow" onClick={finish} loading={busy}>
+                  Buka beranda
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
-        <div className={styles.stepContent}>
-          {renderStep()}
-        </div>
-      </Card>
+      </main>
     </div>
   );
-};
-
-export default Onboarding;
+}

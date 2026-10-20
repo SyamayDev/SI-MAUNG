@@ -1,49 +1,71 @@
-import { supabase } from '../lib/supabase';
-
 /**
- * Fetches all savings goals for a specific user.
- * @param {string} userId The ID of the user.
- * @returns {Promise<{data: any[] | null, error: any}>}
+ * Savings goals. `current_amount` on the goal row is the single source of
+ * truth for progress: deposits and withdrawals change it directly (they are
+ * not mirrored as transactions). Updates use optimistic concurrency — the
+ * write only succeeds if the stored amount is still the one we read — so two
+ * tabs can never overwrite each other's contributions.
  */
-export const getSavingsGoals = async (userId) => {
-  if (!userId) return { data: [], error: null };
+import { supabase } from "../lib/supabase";
 
-  const { data, error } = await supabase
-    .from('savings_goals')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+const TABLE = "savings_goals";
 
-  return { data, error };
-};
+export async function listGoals(userId) {
+  return supabase.from(TABLE).select("*").eq("user_id", userId).order("created_at", { ascending: false });
+}
 
-/**
- * Creates a new savings goal.
- * @param {object} goalData The data for the new goal.
- * @param {string} goalData.user_id The ID of the user.
- * @param {string} goalData.name The name of the goal.
- * @param {number} goalData.target_amount The target amount for the goal.
- * @param {string|null} goalData.deadline The optional deadline for the goal.
- * @returns {Promise<{data: any | null, error: any}>}
- */
-export const createSavingsGoal = async (goalData) => {
-  if (!goalData.user_id || !goalData.name || !goalData.target_amount) {
-    return { data: null, error: { message: 'User ID, name, and target amount are required.' } };
-  }
-
-  const { data, error } = await supabase
-    .from('savings_goals')
-    .insert([
-      {
-        user_id: goalData.user_id,
-        name: goalData.name,
-        target_amount: goalData.target_amount,
-        current_amount: 0, // Goals always start at 0
-        deadline: goalData.deadline || null,
-      },
-    ])
+export async function createGoal(userId, value) {
+  return supabase
+    .from(TABLE)
+    .insert({ user_id: userId, name: value.name, target_amount: value.target_amount, deadline: value.deadline, current_amount: 0 })
     .select()
     .single();
+}
 
-  return { data, error };
-};
+export async function updateGoal(userId, id, value) {
+  const result = await supabase
+    .from(TABLE)
+    .update({ name: value.name, target_amount: value.target_amount, deadline: value.deadline })
+    .eq("id", id)
+    .eq("user_id", userId)
+    .select()
+    .maybeSingle();
+  if (!result.error && !result.data) return { data: null, error: { message: "not-found", code: "NOT_FOUND" } };
+  return result;
+}
+
+export async function deleteGoal(userId, id) {
+  const result = await supabase.from(TABLE).delete().eq("id", id).eq("user_id", userId).select("id");
+  if (!result.error && !result.data?.length) return { data: null, error: { message: "not-found", code: "NOT_FOUND" } };
+  return result;
+}
+
+/** Add `delta` (negative = withdraw) to a goal's current_amount. */
+export async function contributeToGoal(userId, goalId, delta, attempts = 3) {
+  for (let i = 0; i < attempts; i++) {
+    const { data: goal, error } = await supabase
+      .from(TABLE)
+      .select("id, current_amount")
+      .eq("id", goalId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) return { data: null, error };
+    if (!goal) return { data: null, error: { message: "not-found", code: "NOT_FOUND" } };
+
+    const current = Number(goal.current_amount) || 0;
+    const next = current + delta;
+    if (next < 0) return { data: null, error: { message: "insufficient", code: "INSUFFICIENT" } };
+
+    const result = await supabase
+      .from(TABLE)
+      .update({ current_amount: next })
+      .eq("id", goalId)
+      .eq("user_id", userId)
+      .eq("current_amount", goal.current_amount)
+      .select()
+      .maybeSingle();
+    if (result.error) return result;
+    if (result.data) return result;
+    // Someone else changed the amount in between — read again and retry.
+  }
+  return { data: null, error: { message: "conflict", code: "CONFLICT" } };
+}

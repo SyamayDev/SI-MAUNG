@@ -1,23 +1,26 @@
-import React from 'react';
-import styles from './Select.module.css';
-import { ChevronDown } from 'lucide-react';
+import { forwardRef, useId } from "react";
+import { ChevronDown } from "lucide-react";
+import { Field } from "./Input";
 
-const Select = ({ id, label, value, onChange, options, className }) => {
+const Select = forwardRef(function Select({ id, label, hint, error, review, options, className = "", fieldClassName = "", ...props }, ref) {
+  const auto = useId();
+  const selectId = id || auto;
   return (
-    <div className={`${styles.selectWrapper} ${className || ''}`}>
-      {label && <label htmlFor={id} className={styles.label}>{label}</label>}
-      <div className={styles.selectContainer}>
-        <select id={id} value={value} onChange={onChange} className={styles.select}>
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <ChevronDown size={16} className={styles.chevron} />
-      </div>
-    </div>
+    <Field id={selectId} label={label} hint={hint} error={error} review={review} className={fieldClassName}>
+      {(a11y) => (
+        <div className="select-wrap">
+          <select ref={ref} className={`select ${review && !error ? "input--review" : ""} ${className}`} {...a11y} {...props}>
+            {options.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={18} className="select-wrap__chevron" aria-hidden="true" />
+        </div>
+      )}
+    </Field>
   );
-};
+});
 
 export default Select;

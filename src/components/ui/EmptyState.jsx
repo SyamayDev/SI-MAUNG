@@ -1,26 +1,13 @@
-import React from 'react';
-import styles from './EmptyState.module.css';
-import Button from './Button';
+import { asset } from "../../lib/assets";
 
-const EmptyState = ({ image, title, message, action }) => {
-  // Ingat, Anda perlu membuat gambar-gambar ini dan meletakkannya di folder `public/images/`.
-  // Contoh: public/images/empty-transactions.webp
-  const imagePath = `/images/${image}`;
-
+/** Honest empty state with the MAUNG illustration and an optional real action. */
+export default function EmptyState({ title, message, action, art = "images/empty-state-mascot.webp", compact = false }) {
   return (
-    <div className={styles.emptyStateContainer}>
-      <img src={imagePath} alt={title} className={styles.emptyStateImage} />
-      <h3 className={styles.emptyStateTitle}>{title}</h3>
-      <p className={styles.emptyStateMessage}>{message}</p>
-      {action && (
-        <div className={styles.emptyStateAction}>
-          <Button onClick={action.onClick} variant="primary" size="medium">
-            {action.label}
-          </Button>
-        </div>
-      )}
+    <div className="empty" style={compact ? { padding: "var(--sp-5) var(--sp-3)" } : undefined}>
+      {art && !compact && <img className="empty__art" src={asset(art)} alt="" width="150" height="190" loading="lazy" />}
+      <h3 className="empty__title">{title}</h3>
+      {message && <p className="empty__text">{message}</p>}
+      {action}
     </div>
   );
-};
-
-export default EmptyState;
+}

@@ -25,3 +25,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local reference checkout of another project (not part of SI-MAUNG)
+SI-RAJU/
+
+# Supabase CLI local state
+supabase/.temp/
+supabase/.branches/

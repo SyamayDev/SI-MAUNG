@@ -1,29 +1,50 @@
-﻿import { supabase } from "../lib/supabase";
+﻿/**
+ * Transactions table access. Every query is scoped to the signed-in user's
+ * id in addition to the database's Row Level Security policies.
+ */
+import { supabase } from "../lib/supabase";
+import { isMissingColumn } from "../lib/errors";
 
-export async function createTransaction(transaction) {
-  const { data, error } = await supabase
-    .from("transactions")
-    .insert([transaction]);
+const TABLE = "transactions";
+// Columns added by supabase/migrations — older databases may not have them yet.
+const OPTIONAL_COLUMNS = ["notes", "source"];
 
-  return { data, error };
+export async function listTransactions(userId) {
+  return supabase
+    .from(TABLE)
+    .select("*")
+    .eq("user_id", userId)
+    .order("transaction_date", { ascending: false })
+    .order("created_at", { ascending: false });
 }
 
-export async function updateTransaction(id, changes) {
-  const { data, error } = await supabase
-    .from("transactions")
-    .update(changes)
-    .eq("id", id)
-    .single();
-
-  return { data, error };
+function withoutOptional(row) {
+  const copy = { ...row };
+  for (const c of OPTIONAL_COLUMNS) delete copy[c];
+  return copy;
 }
 
-export async function deleteTransaction(id) {
-  const { data, error } = await supabase
-    .from("transactions")
-    .delete()
-    .eq("id", id)
-    .single();
+/** @param value validated fields from validateTransaction() */
+export async function createTransaction(userId, value, source = "manual") {
+  const row = { ...value, user_id: userId, source };
+  let result = await supabase.from(TABLE).insert(row).select().single();
+  if (isMissingColumn(result.error)) {
+    result = await supabase.from(TABLE).insert(withoutOptional(row)).select().single();
+  }
+  return result;
+}
 
-  return { data, error };
+export async function updateTransaction(userId, id, changes) {
+  let result = await supabase.from(TABLE).update(changes).eq("id", id).eq("user_id", userId).select().maybeSingle();
+  if (isMissingColumn(result.error)) {
+    result = await supabase.from(TABLE).update(withoutOptional(changes)).eq("id", id).eq("user_id", userId).select().maybeSingle();
+  }
+  if (!result.error && !result.data) return { data: null, error: { message: "not-found", code: "NOT_FOUND" } };
+  return result;
+}
+
+export async function deleteTransaction(userId, id) {
+  const result = await supabase.from(TABLE).delete().eq("id", id).eq("user_id", userId).select("id");
+  if (!result.error && !result.data?.length) return { data: null, error: { message: "not-found", code: "NOT_FOUND" } };
+  return result;
 }

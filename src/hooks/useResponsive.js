@@ -1,18 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from "react";
 
-const useResponsive = () => {
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+/** Live media-query match (re-evaluates on resize/rotation). */
+export function useMediaQuery(query) {
+  return useSyncExternalStore(
+    (listener) => {
+      const mq = window.matchMedia(query);
+      mq.addEventListener("change", listener);
+      return () => mq.removeEventListener("change", listener);
+    },
+    () => window.matchMedia(query).matches,
+    () => false
+  );
+}
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+/** Desktop shell (sidebar) from 1024px; below that the bottom navigation is used. */
+export default function useResponsive() {
+  return !useMediaQuery("(min-width: 1024px)");
+}
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  return isMobile;
-};
-
-export default useResponsive;
+export const useReducedMotion = () => useMediaQuery("(prefers-reduced-motion: reduce)");

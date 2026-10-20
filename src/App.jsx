@@ -1,63 +1,61 @@
-﻿import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+﻿import { lazy, Suspense } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import ProtectedRoute, { PublicOnlyRoute } from "./components/layouts/ProtectedRoute";
+import AppShell from "./components/layouts/AppShell";
+import LoadingSpinner from "./components/ui/LoadingSpinner";
+import ScrollToTop from "./components/layouts/ScrollToTop";
+import { useAuth } from "./context/AuthContext";
+import { ModalProvider } from "./context/ModalContext";
 
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import Transactions from "./pages/Transactions";
-import AIChatPage from "./pages/AIChatPage";
-import SavingsGoals from "./pages/SavingsGoals";
-import Analytics from "./pages/Analytics";
-import Settings from "./pages/Settings";
+const Landing = lazy(() => import("./pages/Landing"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Transactions = lazy(() => import("./pages/Transactions"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const SavingsGoals = lazy(() => import("./pages/SavingsGoals"));
+const AIChatPage = lazy(() => import("./pages/AIChatPage"));
+const Settings = lazy(() => import("./pages/Settings"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
-import ProtectedRoute from "./components/layouts/ProtectedRoute";
-import PageContainer from "./components/layouts/PageContainer";
+// "/SI-MAUNG/" in production, "/" in dev.
+const basename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
 
-import Onboarding from "./pages/Onboarding";
+function Home() {
+  const { status } = useAuth();
+  if (status === "loading") return <LoadingSpinner message="Memuat SI-MAUNG…" />;
+  if (status === "signedIn") return <Navigate to="/dashboard" replace />;
+  return <Landing />;
+}
 
-function App() {
+export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route index element={<Navigate to="/dashboard" replace />} />
-
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-
-        {/* Onboarding Route */}
-        <Route
-          path="/onboarding"
-          element={
-            <ProtectedRoute>
-              <Onboarding />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Protected Routes with Main Layout */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <PageContainer />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="transactions" element={<Transactions />} />
-          <Route path="ai" element={<AIChatPage />} />
-          <Route path="savings" element={<SavingsGoals />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
+    <BrowserRouter basename={basename}>
+      <ScrollToTop />
+      <ModalProvider>
+      <Suspense fallback={<LoadingSpinner />}>
+        <Routes>
+          <Route index element={<Home />} />
+          <Route path="login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+          <Route path="register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+          <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="transactions" element={<Transactions />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="savings" element={<SavingsGoals />} />
+            <Route path="ai" element={<AIChatPage />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+      </ModalProvider>
     </BrowserRouter>
   );
 }
-
-export default App;
