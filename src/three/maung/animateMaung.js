@@ -16,7 +16,7 @@ const EXPRESSIONS = {
   idle: { lid: 1, lower: 0, brow: 0, tilt: 0, mouth: 0.6 },
   listening: { lid: 1.08, lower: 0, brow: 1, tilt: 0.16, mouth: 0.25 },
   thinking: { lid: 0.85, lower: 0.12, brow: 0.6, tilt: -0.12, mouth: 0.15 },
-  happy: { lid: 0.98, lower: 0.38, brow: 0.35, tilt: 0.05, mouth: 1 },
+  happy: { lid: 1.02, lower: 0.16, brow: 0.4, tilt: 0.05, mouth: 1 },
 };
 
 // Arm poses: shoulder (x, z), elbow x — for the right (R, gesture) arm unless noted.
@@ -26,7 +26,7 @@ const POSES = {
   listen: { R: { sx: -0.35, sz: 2.55, ex: -1.35 } },
   point: { L: { sx: -1.25, sz: 0.65, ex: -0.1 } }, // MAUNG's left arm points to the stacks on screen-right
   coin: { L: { sx: -1.1, sz: 0.35, ex: -1.3 } },
-  cheer: { R: { sx: -0.15, sz: 2.65, ex: -0.3 }, L: { sx: -0.15, sz: 2.65, ex: -0.3 } },
+  cheer: { R: { sx: -0.35, sz: 2.2, ex: -0.55 }, L: { sx: -0.35, sz: 2.2, ex: -0.55 } },
 };
 
 const damp = (a, b, lambda, dt) => MathUtils.lerp(a, b, 1 - Math.exp(-lambda * dt));
@@ -133,7 +133,8 @@ export function createMaungAnimator(maung) {
       for (const { eye, upper, lower } of eyes) {
         eye.rotation.set(s.pitch * 0.4, s.yaw * 0.5, 0);
         const open = MathUtils.clamp(s.lid - blink * 1.25, 0, 1.15);
-        upper.rotation.x = MathUtils.lerp(1.55, -0.9, open); // 1.55 ≈ closed over the front
+        // open: the lid cap tucks back; closed: its rim (with the lash line) sweeps down across the eye
+        upper.rotation.x = MathUtils.lerp(0.45, -0.9, open);
         const low = MathUtils.clamp(s.lower + blink * 0.45, 0, 1);
         lower.rotation.x = MathUtils.lerp(0.55, -0.75, low);
       }

@@ -11,6 +11,7 @@ import { addMonths, startOfMonth, toLocalISODate } from "../lib/finance/dates";
 import { buildInsights, categoryBreakdown, inRange, monthlySeries, totals } from "../lib/finance/summary";
 import { categoryColor } from "../lib/finance/categories";
 import { formatCompactRupiah, formatDate, formatPercent, formatRupiah } from "../lib/finance/format";
+import { useTheme } from "../lib/theme";
 
 const RANGES = [
   { value: "3", label: "3 bln" },
@@ -19,6 +20,11 @@ const RANGES = [
 ];
 const INCOME = "#14a07c";
 const EXPENSE = "#e2564b";
+// Recharts draws SVG attributes, so chart chrome gets concrete colours per theme.
+const CHART = {
+  light: { grid: "#e6dbc6", tick: "#5f6686", cursor: "rgba(14, 21, 51, 0.05)" },
+  dark: { grid: "#29336a", tick: "#9aa1c4", cursor: "rgba(255, 255, 255, 0.06)" },
+};
 
 function MoneyTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -36,6 +42,7 @@ function MoneyTooltip({ active, payload, label }) {
 
 export default function Analytics() {
   const { transactions, txStatus, txError, refreshTransactions } = useFinance();
+  const chart = CHART[useTheme().theme];
   const { openCapture } = useModal();
   const [range, setRange] = useState("6");
   const now = useMemo(() => new Date(), []);
@@ -121,10 +128,10 @@ export default function Analytics() {
               <div className="chart" aria-hidden="true">
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={series} margin={{ top: 8, right: 4, left: 0, bottom: 0 }} barGap={2}>
-                    <CartesianGrid vertical={false} stroke="#e6dbc6" />
-                    <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: "#5f6686" }} />
-                    <YAxis tickFormatter={(v) => formatCompactRupiah(v).replace("Rp ", "")} tickLine={false} axisLine={false} width={56} tick={{ fontSize: 12, fill: "#5f6686" }} />
-                    <Tooltip content={<MoneyTooltip />} cursor={{ fill: "rgb(14 21 51 / 0.05)" }} />
+                    <CartesianGrid vertical={false} stroke={chart.grid} />
+                    <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: chart.tick }} />
+                    <YAxis tickFormatter={(v) => formatCompactRupiah(v).replace("Rp ", "")} tickLine={false} axisLine={false} width={56} tick={{ fontSize: 12, fill: chart.tick }} />
+                    <Tooltip content={<MoneyTooltip />} cursor={{ fill: chart.cursor }} />
                     <Bar dataKey="income" name="Pemasukan" fill={INCOME} radius={[6, 6, 0, 0]} maxBarSize={28} />
                     <Bar dataKey="expense" name="Pengeluaran" fill={EXPENSE} radius={[6, 6, 0, 0]} maxBarSize={28} />
                   </BarChart>

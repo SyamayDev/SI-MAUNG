@@ -100,8 +100,8 @@ a {
 }
 
 ::selection {
-  background: var(--c-amber-soft);
-  color: var(--c-ink);
+  background: var(--c-amber);
+  color: var(--c-on-amber);
 }
 
 :focus-visible {
@@ -110,9 +110,9 @@ a {
   border-radius: 6px;
 }
 
-.on-night :focus-visible,
-.on-night:focus-visible {
-  outline-color: var(--c-amber);
+.on-stage :focus-visible,
+.on-stage:focus-visible {
+  outline-color: var(--c-stage-focus);
 }
 
 [hidden] {
@@ -138,8 +138,8 @@ a {
   top: var(--sp-3);
   z-index: calc(var(--z-toast) + 1);
   padding: var(--sp-3) var(--sp-4);
-  background: var(--c-ink);
-  color: var(--c-on-night);
+  background: var(--c-inverse);
+  color: var(--c-on-inverse);
   border-radius: var(--r-sm);
   font-weight: 700;
   transform: translateY(-160%);
@@ -166,11 +166,11 @@ a {
 .accent-italic {
   font-style: italic;
   font-variation-settings: "SOFT" 100, "WONK" 1;
-  color: var(--c-amber-deep);
+  color: var(--c-accent-text);
 }
 
-.on-night .accent-italic {
-  color: var(--c-amber);
+.on-stage .accent-italic {
+  color: var(--c-stage-accent);
 }
 
 .eyebrow {
@@ -184,8 +184,8 @@ a {
   color: var(--c-ink-mute);
 }
 
-.on-night .eyebrow {
-  color: var(--c-on-night-mute);
+.on-stage .eyebrow {
+  color: var(--c-on-stage-mute);
 }
 
 .muted {

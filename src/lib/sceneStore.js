@@ -5,7 +5,25 @@
  */
 const listeners = new Set();
 
+const reduceQuery = typeof window !== "undefined" ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+
 export const scene = {
+  /**
+   * What the persistent 3D host shows for the current route:
+   *   "story"    landing & dashboard scroll story
+   *   "portrait" MAUNG framed in a page element ([data-maung-frame]: auth, onboarding)
+   *   "off"      not visible (render loop paused, world kept in memory)
+   */
+  mode: "off",
+  /** Resolved colour theme: "light" | "dark" (lighting, floor, sky props). */
+  theme: "light",
+  /** Portrait mode: the frame rect as viewport fractions { x, y, w, h }, and MAUNG's pose there. */
+  frame: { x: 0.55, y: 0.15, w: 0.4, h: 0.7 },
+  portraitPose: "wave",
+  /** prefers-reduced-motion: MAUNG holds calm poses, coins and camera don't drift. */
+  reducedMotion: Boolean(reduceQuery?.matches),
+  /** Desktop app shell (sidebar) is on screen: the canvas starts right of it. */
+  shell: false,
   /** Continuous story position: chapter i spans [i, i + 1). Written by scrollStory.js. */
   story: 0,
   /** Index of the chapter currently in view. */
@@ -59,6 +77,8 @@ export function cue(type) {
 export function setMood(mood) {
   scene.mood = mood;
 }
+
+reduceQuery?.addEventListener("change", (e) => setScene({ reducedMotion: e.matches }));
 
 /** Pointer in normalised device coordinates; only mice steer MAUNG's gaze. */
 export const pointer = { x: 0, y: 0, active: false };

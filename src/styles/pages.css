@@ -1,6 +1,10 @@
-/* ================= Auth ================= */
+/* ================= Auth =================
+ * The brand side is transparent: the 3D layer (sky + MAUNG, framed into
+ * .auth__art) shows through it. The form side is opaque paper.
+ */
 .auth {
   display: grid;
+  grid-template-rows: auto 1fr;
   min-height: 100vh;
   min-height: 100dvh;
 }
@@ -8,31 +12,33 @@
 .auth__brand {
   position: relative;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(190px, 30svh);
   align-items: center;
-  gap: var(--sp-4);
-  padding: var(--sp-4) var(--gutter);
-  background:
-    radial-gradient(80% 120% at 100% 0%, rgb(242 165 22 / 0.22), transparent 60%),
-    linear-gradient(160deg, var(--c-night-2), var(--c-night-0));
-  color: var(--c-on-night);
-  overflow: hidden;
+  gap: var(--sp-2) var(--sp-3);
+  padding: var(--sp-4) var(--gutter) 0;
+  color: var(--c-on-stage);
 }
 
 .auth__logo {
   text-decoration: none;
   border-radius: var(--r-sm);
+  justify-self: start;
 }
 
 .auth__art {
-  justify-self: end;
-  width: 92px;
-  margin-bottom: -18px;
+  grid-column: 1 / -1;
+  align-self: stretch;
+  justify-self: center;
+  width: min(100%, 320px);
+  min-height: 0;
 }
 
 .auth__art img {
   width: 100%;
-  filter: drop-shadow(0 16px 30px rgb(0 0 0 / 0.45));
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 30px rgb(0 0 0 / 0.35));
 }
 
 .auth__tagline {
@@ -44,7 +50,11 @@
   align-content: start;
   justify-items: center;
   gap: var(--sp-4);
-  padding: var(--sp-6) var(--gutter) var(--sp-10);
+  padding: var(--sp-8) var(--gutter) var(--sp-10);
+  background: var(--c-paper);
+  color: var(--c-ink);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  box-shadow: 0 -18px 40px -24px rgb(0 0 0 / 0.35);
 }
 
 .auth__card {
@@ -68,29 +78,28 @@
 
 @media (min-width: 900px) {
   .auth {
+    grid-template-rows: none;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .auth__brand {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr auto;
-    align-items: stretch;
-    padding: var(--sp-8) clamp(2rem, 5vw, 4rem);
-    min-height: 100vh;
-    min-height: 100dvh;
     position: sticky;
     top: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    align-items: stretch;
+    padding: var(--sp-8) clamp(2rem, 5vw, 4rem);
+    height: 100vh;
+    height: 100dvh;
   }
 
   .auth__art {
-    justify-self: center;
-    align-self: center;
-    width: min(70%, 340px);
-    margin: 0;
+    width: min(100%, 460px);
+    align-self: stretch;
   }
 
   .auth__tagline {
     display: block;
+    grid-column: 1 / -1;
     font-size: var(--fs-2xl);
     max-width: 16ch;
   }
@@ -98,6 +107,8 @@
   .auth__main {
     align-content: center;
     padding: var(--sp-10) clamp(2rem, 5vw, 4rem);
+    border-radius: 0;
+    box-shadow: -24px 0 50px -36px rgb(0 0 0 / 0.4);
   }
 }
 
@@ -105,10 +116,7 @@
 .onboarding {
   min-height: 100vh;
   min-height: 100dvh;
-  background:
-    radial-gradient(70% 60% at 50% 20%, rgb(242 165 22 / 0.16), transparent 70%),
-    linear-gradient(180deg, var(--c-night-1), var(--c-night-0));
-  color: var(--c-on-night);
+  color: var(--c-on-stage);
 }
 
 .onboarding__bar {
@@ -119,11 +127,42 @@
   padding: var(--sp-4) var(--gutter);
 }
 
+.onboarding__bar-end {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.onboarding__count {
+  white-space: nowrap;
+}
+
+.onboarding__count-short {
+  display: none;
+}
+
+/* Phones: logo + counter + theme toggle share one row → compact "1/4"
+   on screen, the full sentence stays for screen readers. */
+@media (max-width: 419px) {
+  .onboarding__count-long {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .onboarding__count-short {
+    display: inline;
+  }
+}
+
 .onboarding__progress {
   height: 4px;
   margin: 0 var(--gutter);
   border-radius: var(--r-pill);
-  background: rgb(255 255 255 / 0.1);
+  background: var(--c-stage-line);
   overflow: hidden;
 }
 
@@ -138,13 +177,19 @@
   display: grid;
   justify-items: center;
   gap: var(--sp-4);
-  padding: var(--sp-6) var(--gutter) var(--sp-10);
+  padding: var(--sp-4) var(--gutter) var(--sp-10);
 }
 
 .onboarding__art {
-  width: auto;
-  height: min(30vh, 260px);
-  filter: drop-shadow(0 20px 36px rgb(0 0 0 / 0.5));
+  width: min(80vw, 320px);
+  height: min(32vh, 280px);
+}
+
+.onboarding__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 36px rgb(0 0 0 / 0.35));
   animation: pop-in var(--dur-3) var(--ease-spring);
 }
 
@@ -173,8 +218,13 @@
   border-radius: var(--r-md);
   border: 1.5px solid var(--c-line-strong);
   background: var(--c-surface);
+  color: var(--c-ink);
   font-weight: 750;
   text-align: left;
+}
+
+.goal-option:hover {
+  border-color: var(--c-ink-mute);
 }
 
 .goal-option[aria-checked="true"] {
@@ -193,7 +243,13 @@
   gap: var(--sp-3);
   height: 64px;
   padding: 0 var(--gutter);
-  background: linear-gradient(180deg, rgb(7 11 31 / 0.85), rgb(7 11 31 / 0));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c-stage-1) 92%, transparent), transparent);
+}
+
+.landing__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
 }
 
 .landing__bar a {
@@ -218,7 +274,7 @@
   display: grid;
   gap: var(--sp-3);
   margin-top: var(--sp-6);
-  color: var(--c-on-night-soft);
+  color: var(--c-on-stage-soft);
 }
 
 .landing__promises li {
@@ -230,7 +286,7 @@
 .landing__promises svg {
   flex: none;
   margin-top: 3px;
-  color: #6fe3bf;
+  color: var(--c-stage-income);
 }
 
 .parse-preview {
@@ -584,7 +640,7 @@
 
 .msg--user .msg__bubble {
   background: var(--c-ink);
-  color: var(--c-on-night);
+  color: var(--c-on-stage);
   border-color: var(--c-ink);
   border-top-left-radius: var(--r-lg);
   border-top-right-radius: 6px;
@@ -677,6 +733,12 @@
   resize: none;
   box-shadow: none !important;
   background: transparent;
+}
+
+.chat__input::placeholder {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chat__mic.is-on {

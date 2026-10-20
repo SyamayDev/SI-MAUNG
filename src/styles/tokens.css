@@ -1,51 +1,20 @@
 /*
  * SI-MAUNG design tokens — "MAUNG: Money in Motion"
- * Midnight ink for structure, warm ivory paper for reading, tiger amber as the
- * brand accent. Income/expense always pair colour with a sign, icon and label.
+ *
+ * Two themes share one brand: tiger amber accents, midnight-ink structure.
+ *   light (default): warm ivory paper; the story "stage" is a soft dawn.
+ *   dark:            navy surfaces;   the story "stage" is the night sky.
+ * The theme is set on <html data-theme> before first paint (index.html).
+ * Income/expense always pair colour with a sign, icon and label.
  */
 :root {
-  /* Ink (structure, text, night surfaces) */
-  --c-ink: #0e1533;
-  --c-ink-2: #172150;
-  --c-ink-3: #24326f;
-  --c-ink-soft: #444d72;
-  --c-ink-mute: #5f6686;
-
-  /* Paper (reading surfaces) */
-  --c-paper: #fbf6ec;
-  --c-surface: #fffdf8;
-  --c-surface-2: #f6efe1;
-  --c-surface-3: #efe5d1;
-  --c-line: #e6dbc6;
-  --c-line-strong: #cfc0a3;
-
-  /* Brand */
+  /* Brand (theme independent) */
   --c-amber: #f2a516;
   --c-amber-deep: #dd8b00;
-  --c-amber-ink: #874f00;
-  --c-amber-soft: #fdecc8;
-  --c-stripe: #2e1d12;
+  --c-amber-hover: #f7b336;
+  --c-on-amber: #1a1408; /* text/icons on amber fills, both themes */
+  --c-stripe: #1f1510;
   --c-cream: #fff3dc;
-
-  /* Money semantics (text-safe on paper ≥ 4.5:1) */
-  --c-income: #0a7559;
-  --c-income-fill: #14a07c;
-  --c-income-soft: #d9f1e7;
-  --c-expense: #be343a;
-  --c-expense-fill: #e2564b;
-  --c-expense-soft: #fbe1dc;
-  --c-warn: #8f5a00;
-  --c-warn-soft: #fff1cf;
-
-  /* Night (story stage, sidebar) */
-  --c-night-0: #070b1f;
-  --c-night-1: #0d1436;
-  --c-night-2: #18225a;
-  --c-on-night: #fff8ea;
-  --c-on-night-soft: #cdd1e8;
-  --c-on-night-mute: #9ca3c6;
-
-  --c-focus: #1f43c9;
 
   /* Type */
   --font-display: "Fraunces Variable", "Fraunces", Georgia, "Times New Roman", serif;
@@ -84,11 +53,6 @@
   --r-xl: 30px;
   --r-pill: 999px;
 
-  /* Depth (warm-tinted shadows) */
-  --sh-1: 0 1px 2px rgb(46 29 18 / 0.06), 0 1px 1px rgb(46 29 18 / 0.04);
-  --sh-2: 0 10px 28px -14px rgb(14 21 51 / 0.28), 0 2px 6px -2px rgb(14 21 51 / 0.08);
-  --sh-3: 0 30px 70px -30px rgb(7 11 31 / 0.55), 0 8px 20px -10px rgb(7 11 31 / 0.25);
-
   /* Layers */
   --z-stage: 0;
   --z-content: 1;
@@ -97,6 +61,7 @@
   --z-fab: 60;
   --z-dialog: 100;
   --z-toast: 120;
+  --z-loader: 200;
 
   /* Motion */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -112,6 +77,157 @@
   --bottomnav-h: 72px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --tap: 44px;
+
+  /* ---------- LIGHT theme (default) ---------- */
+  color-scheme: light;
+
+  /* Text */
+  --c-ink: #0e1533;
+  --c-ink-soft: #444d72;
+  --c-ink-mute: #5f6686;
+  --c-placeholder: #8a8ca2;
+
+  /* Paper (reading surfaces) */
+  --c-paper: #fbf6ec;
+  --c-surface: #fffdf8;
+  --c-surface-2: #f6efe1;
+  --c-surface-3: #efe5d1;
+  --c-line: #e6dbc6;
+  --c-line-strong: #cfc0a3;
+
+  /* Inverse (primary buttons, toasts, own chat bubbles) */
+  --c-inverse: #0e1533;
+  --c-inverse-hover: #1d2a63;
+  --c-on-inverse: #fff8ea;
+  --c-on-inverse-mute: #a7adcc;
+
+  /* Brand on paper */
+  --c-amber-ink: #874f00;
+  --c-amber-soft: #fdecc8;
+  --c-accent-text: #a35e00;
+  --c-review-bg: #fffaf0;
+
+  /* Money semantics (text-safe on paper ≥ 4.5:1) */
+  --c-income: #0a7559;
+  --c-income-fill: #14a07c;
+  --c-income-soft: #d9f1e7;
+  --c-expense: #be343a;
+  --c-expense-fill: #e2564b;
+  --c-expense-soft: #fbe1dc;
+  --c-warn: #8f5a00;
+  --c-warn-soft: #fff1cf;
+  --c-warn-line: #f0d38f;
+  --c-error-text: #8c2328;
+  --c-error-line: #f1b9b2;
+  --c-success-text: #075540;
+  --c-success-line: #a9dcc8;
+
+  --c-income-strong: #0a7559; /* fills behind white text (>= 4.5:1) */
+  --c-expense-strong: #b0323a;
+  --c-toast-success: #6fe3bf;
+  --c-toast-error: #ffa59b;
+  --c-toast-info: #f2a516;
+
+  --c-focus: #1f43c9;
+  --c-focus-ring: rgb(31 67 201 / 0.18);
+  --c-backdrop: rgb(14 21 51 / 0.45);
+  --c-stage-focus: #1f43c9;
+
+  /* Stage — the story/brand surface (dawn in light mode) */
+  --c-stage-0: #f1e4cc;
+  --c-stage-1: #f9efdd;
+  --c-stage-2: #fff7ea;
+  --c-on-stage: #0e1533;
+  --c-on-stage-soft: #3b446d;
+  --c-on-stage-mute: #575e82;
+  --c-stage-glass: rgb(255 253 248 / 0.72);
+  --c-stage-glass-hover: rgb(255 253 248 / 0.95);
+  --c-stage-line: rgb(14 21 51 / 0.14);
+  --c-stage-line-strong: rgb(14 21 51 / 0.42);
+  --c-stage-accent: #a35e00;
+  --c-stage-income: #0a7559;
+  --c-stage-expense: #b0323a;
+  --sky-glow: rgb(242 165 22 / 0.22);
+  --sky-tint: rgb(255 214 150 / 0.45);
+  --sky-stripe: rgb(46 29 18 / 0.035);
+
+  /* Depth (warm-tinted shadows) */
+  --sh-1: 0 1px 2px rgb(46 29 18 / 0.06), 0 1px 1px rgb(46 29 18 / 0.04);
+  --sh-2: 0 10px 28px -14px rgb(14 21 51 / 0.28), 0 2px 6px -2px rgb(14 21 51 / 0.08);
+  --sh-3: 0 30px 70px -30px rgb(14 21 51 / 0.4), 0 8px 20px -10px rgb(14 21 51 / 0.18);
+}
+
+/* ---------- DARK theme ---------- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --c-ink: #f3eee4;
+  --c-ink-soft: #c9cde4;
+  --c-ink-mute: #9aa1c4;
+  --c-placeholder: #7b82a6;
+
+  --c-paper: #0a0f26;
+  --c-surface: #121a3b;
+  --c-surface-2: #18214a;
+  --c-surface-3: #222c5a;
+  --c-line: #29336a;
+  --c-line-strong: #3d4983;
+
+  --c-inverse: #f6efe0;
+  --c-inverse-hover: #ffffff;
+  --c-on-inverse: #0e1533;
+  --c-on-inverse-mute: #4b5479;
+
+  --c-amber-ink: #f7c766;
+  --c-amber-soft: rgb(242 165 22 / 0.16);
+  --c-accent-text: #f4b23a;
+  --c-review-bg: rgb(242 165 22 / 0.07);
+
+  --c-income: #56d8ad;
+  --c-income-fill: #17a882;
+  --c-income-soft: rgb(23 168 130 / 0.18);
+  --c-expense: #ff8f85;
+  --c-expense-fill: #e5594e;
+  --c-expense-soft: rgb(229 89 78 / 0.18);
+  --c-warn: #f7c766;
+  --c-warn-soft: rgb(242 165 22 / 0.14);
+  --c-warn-line: rgb(247 199 102 / 0.35);
+  --c-error-text: #ffb4ab;
+  --c-error-line: rgb(255 143 133 / 0.35);
+  --c-success-text: #8ff0cd;
+  --c-success-line: rgb(86 216 173 / 0.35);
+
+  --c-income-strong: #0d7a5c;
+  --c-expense-strong: #b9353c;
+  --c-toast-success: #0a7559;
+  --c-toast-error: #b0323a;
+  --c-toast-info: #a35e00;
+
+  --c-focus: #9cb6ff;
+  --c-focus-ring: rgb(156 182 255 / 0.25);
+  --c-backdrop: rgb(2 4 14 / 0.7);
+  --c-stage-focus: #f2a516;
+
+  --c-stage-0: #070b1f;
+  --c-stage-1: #0d1436;
+  --c-stage-2: #18225a;
+  --c-on-stage: #fff8ea;
+  --c-on-stage-soft: #cdd1e8;
+  --c-on-stage-mute: #9ca3c6;
+  --c-stage-glass: rgb(255 255 255 / 0.06);
+  --c-stage-glass-hover: rgb(255 255 255 / 0.12);
+  --c-stage-line: rgb(255 255 255 / 0.16);
+  --c-stage-line-strong: rgb(255 255 255 / 0.5);
+  --c-stage-accent: #f2a516;
+  --c-stage-income: #6fe3bf;
+  --c-stage-expense: #ffaa9f;
+  --sky-glow: rgb(242 165 22 / 0.16);
+  --sky-tint: rgb(59 92 214 / 0.35);
+  --sky-stripe: rgb(255 255 255 / 0.018);
+
+  --sh-1: 0 1px 2px rgb(0 0 0 / 0.35), 0 1px 1px rgb(0 0 0 / 0.2);
+  --sh-2: 0 10px 28px -14px rgb(0 0 0 / 0.6), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+  --sh-3: 0 30px 70px -30px rgb(0 0 0 / 0.75), 0 8px 20px -10px rgb(0 0 0 / 0.45);
 }
 
 @media (max-width: 1023px) {

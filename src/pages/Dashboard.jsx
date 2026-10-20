@@ -10,7 +10,6 @@ import { ArrowDownLeft, ArrowRight, ArrowUpRight, BarChart3, Bot, History, Keybo
 import { useAuth } from "../context/AuthContext";
 import { useFinance } from "../context/FinanceContext";
 import { useModal } from "../context/ModalContext";
-import StoryBackdrop from "../components/story/StoryBackdrop";
 import ChapterRail, { Chapter, Kicker } from "../components/story/ChapterRail";
 import TransactionRow from "../components/transactions/TransactionRow";
 import CategoryIcon from "../components/ui/CategoryIcon";
@@ -74,11 +73,10 @@ export default function Dashboard() {
 
   return (
     <div className="story story--dash" ref={storyRef}>
-      <StoryBackdrop />
       <ChapterRail labels={LABELS} />
 
       {/* 01 — balance and the record button, first screen */}
-      <Chapter index={0} labelledBy="ch-hero" className="chapter--hero on-night">
+      <Chapter index={0} labelledBy="ch-hero" className="chapter--hero on-stage">
         <p className="hero__hello reveal">
           {greeting(now)}
           {firstName ? `, ${firstName}` : ""}.
@@ -139,7 +137,7 @@ export default function Dashboard() {
       </Chapter>
 
       {/* 02 — voice */}
-      <Chapter index={1} labelledBy="ch-voice" className="on-night">
+      <Chapter index={1} labelledBy="ch-voice" className="on-stage">
         <Kicker n={2}>Catat dengan suara</Kicker>
         <h2 id="ch-voice" className="chapter__title display reveal" style={{ "--i": 1 }}>
           Ucapkan, <span className="accent-italic">MAUNG catat.</span>
@@ -197,7 +195,7 @@ export default function Dashboard() {
       </Chapter>
 
       {/* 03 — inflow / outflow this month */}
-      <Chapter index={2} labelledBy="ch-flow" className="on-night">
+      <Chapter index={2} labelledBy="ch-flow" className="on-stage">
         <Kicker n={3}>Arus {month.label}</Kicker>
         <h2 id="ch-flow" className="chapter__title display reveal" style={{ "--i": 1 }}>
           Setiap arus <span className="accent-italic">punya arti.</span>
@@ -265,7 +263,7 @@ export default function Dashboard() {
       </Chapter>
 
       {/* 04 — patterns (categories + computed insights) */}
-      <Chapter index={3} labelledBy="ch-pattern" className="on-night">
+      <Chapter index={3} labelledBy="ch-pattern" className="on-stage">
         <Kicker n={4}>Pola pengeluaran</Kicker>
         <h2 id="ch-pattern" className="chapter__title display reveal" style={{ "--i": 1 }}>
           Lihat pola, <span className="accent-italic">bukan tebakan.</span>
@@ -321,7 +319,7 @@ export default function Dashboard() {
       </Chapter>
 
       {/* 05 — savings goals */}
-      <Chapter index={4} labelledBy="ch-savings" className="on-night">
+      <Chapter index={4} labelledBy="ch-savings" className="on-stage">
         <Kicker n={5}>Tujuan tabungan</Kicker>
         <h2 id="ch-savings" className="chapter__title display reveal" style={{ "--i": 1 }}>
           Sedikit demi <span className="accent-italic">sedikit.</span>
@@ -369,7 +367,7 @@ export default function Dashboard() {
       </Chapter>
 
       {/* 06 — quick actions */}
-      <Chapter index={5} labelledBy="ch-control" className="on-night">
+      <Chapter index={5} labelledBy="ch-control" className="on-stage">
         <Kicker n={6}>Kendali</Kicker>
         <h2 id="ch-control" className="chapter__title display reveal" style={{ "--i": 1 }}>
           Keuanganmu, <span className="accent-italic">tetap dalam kendalimu.</span>

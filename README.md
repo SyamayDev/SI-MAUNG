@@ -16,7 +16,8 @@ Aplikasi pencatat keuangan pribadi berbahasa Indonesia dengan **pencatatan suara
 | **Tabungan** | Buat/ubah/hapus tujuan, setor & tarik, kebutuhan per bulan menuju tenggat. |
 | **Asisten** | Mencatat dari kalimat dan menjawab pertanyaan ringkas tentang catatanmu (“berapa pengeluaran bulan ini?”) — dihitung dari data, tanpa model AI. Jujur bila tidak mengerti. |
 | **Akun** | Daftar (dengan/ tanpa konfirmasi email), masuk, lupa & atur ulang kata sandi, onboarding, ubah nama & kata sandi. |
-| **Pengaturan** | Hanya kontrol yang berfungsi: nama tampilan, kata sandi, simpan-otomatis suara (bawaan mati), scene 3D otomatis/mati. |
+| **Pengaturan** | Hanya kontrol yang berfungsi: nama tampilan, kata sandi, tema warna, simpan-otomatis suara (bawaan mati), scene 3D otomatis/mati. |
+| **Tema terang / gelap** | Terang, gelap, atau ikuti sistem. Tombol tema ada di landing, halaman masuk/daftar, onboarding, sidebar & top bar aplikasi, serta Pengaturan. Pilihan disimpan di perangkat dan diterapkan sebelum paint pertama (tanpa kedip). |
 
 ## Stack
 
@@ -39,7 +40,7 @@ npm run dev                   # http://localhost:5173
 | `npm run preview` | Menyajikan build di `http://localhost:4173/SI-MAUNG/`. |
 | `npm run lint` | ESLint. |
 | `npm test` | Unit test (Node test runner) untuk parser nominal/tanggal/kategori, validasi, ringkasan, wawasan, dan jawaban asisten. |
-| `npm run deploy` | Build lalu `gh-pages -d dist` ke remote `origin` (lihat *Deployment*). |
+| `npm run deploy` | Build lalu publikasikan `dist/` ke branch `gh-pages` di `origin` (lihat *Deployment*). |
 
 ### Variabel lingkungan
 
@@ -74,37 +75,46 @@ Privasi: SI-MAUNG tidak merekam/menyimpan audio. Di Chrome, suara diubah menjadi
 
 ## Pengalaman 3D
 
-MAUNG dibangun **prosedural** di kode (tanpa file model): `src/three/maung/createMaung.js` (geometri, material, rig), `animateMaung.js` (napas, kedip, tatapan, telinga, ekor, ekspresi, gestur), dan `src/three/world/buildWorld.js` (koreografi enam babak, koin instanced, kamera). Detail di **[docs/3D-EXPERIENCE.md](docs/3D-EXPERIENCE.md)**.
+MAUNG dibangun **prosedural** di kode (tanpa file model/GLB), mengikuti maskot `login-mascot.webp`: kepala besar, telinga bulat, jambang pipi, bulu oranye keemasan dengan loreng hitam yang dilukis di material, wajah krem, mata besar, setelan navy, kemeja putih, dasi kuning, ekor bercincin. File utama: `src/three/maung/` (`headCoords.js`, `textures.js`, `createMaung.js`, `animateMaung.js`) dan `src/three/world/buildWorld.js` (koreografi, koin instanced, kamera, tema). Detail di **[docs/3D-EXPERIENCE.md](docs/3D-EXPERIENCE.md)**.
 
-- Dimuat setelah halaman idle (chunk terpisah ±158 KB gzip); saldo & tombol catat tampil lebih dulu.
-- Fallback 2D (poster maskot per babak) bila `prefers-reduced-motion`, tanpa WebGL, renderer software, error/context lost, atau 3D dimatikan di Pengaturan. Uji paksa: `?3d=on` / `?3d=off`.
-- Scroll tidak pernah dibajak: satu listener pasif + satu `requestAnimationFrame`, loop berhenti saat cerita tak terlihat atau tab tersembunyi, DPR dibatasi dan diturunkan otomatis bila FPS turun.
+- **Satu scene persisten** (`src/components/scene/SceneHost.jsx`) untuk seluruh kunjungan: mode *story* di landing & beranda, mode *portrait* (MAUNG dibingkai di panel kiri, pose per halaman) di masuk/daftar/lupa sandi/atur ulang/onboarding, dan berhenti di halaman lain.
+- **Loading berbasis kesiapan nyata**: loader statis di `index.html` → `LoadingScreen` dengan langkah yang ditandai oleh kode yang benar-benar mengerjakannya (auth, unduhan chunk three.js dengan byte nyata, model, pencahayaan, kompilasi shader, frame pertama). Tanpa timer palsu; tombol *Lewati* setelah 5 dtk; tidak pernah menunggu Supabase lebih dari 8 dtk.
+- `prefers-reduced-motion`: MAUNG 3D tetap tampil dalam pose tenang tanpa animasi. Fallback 2D hanya bila 3D tidak mungkin (tanpa WebGL, renderer software, error/context lost, gagal unduh) atau dimatikan di Pengaturan. Uji paksa: `?3d=on` / `?3d=off`.
+- Scroll tidak pernah dibajak: satu listener pasif + satu `requestAnimationFrame`, loop berhenti saat scene tak terlihat atau tab tersembunyi, DPR dibatasi dan diturunkan otomatis bila FPS turun.
+- Pratinjau model khusus pengembangan: `npm run dev` lalu buka `/tools/maung-preview.html?pose=cheer&expr=happy&zoom=head` (tidak ikut build).
 
 ## Responsif
 
-Mobile-first: di bawah 1024 px sidebar menjadi top bar + bottom navigation dengan tombol mikrofon di tengah; dialog menjadi bottom sheet dengan scroll internal dan safe-area iOS; scene 3D dibingkai ulang ke pita di atas teks tiap babak. Diperiksa tanpa horizontal overflow pada 320, 360, 390, 430, 768, 1024, 1280, 1440 px (lihat *Status verifikasi*).
+Mobile-first: di bawah 1024 px sidebar menjadi top bar + bottom navigation dengan tombol mikrofon di tengah; dialog menjadi bottom sheet dengan scroll internal dan safe-area iOS, dan baris tombol simpan/batal pada formulir panjang tetap terlihat di bawah; scene 3D dibingkai ulang ke pita di atas teks tiap babak. Diperiksa tanpa horizontal overflow pada 320, 360, 390, 430, 768, 1024, 1280, 1440 px (lihat *Status verifikasi*).
 
 ## Deployment (GitHub Pages)
 
 `npm run build` menghasilkan aset dengan base `/SI-MAUNG/` dan menyalin `index.html` menjadi `404.html`, sehingga rute langsung seperti `/SI-MAUNG/transactions` tetap terbuka. `BrowserRouter` memakai `basename` dari `import.meta.env.BASE_URL`.
 
-Perhatian sebelum deploy:
-1. Situs `https://syamaydev.github.io/SI-MAUNG/` saat audit menyajikan **source mentah** (`/src/main.jsx`), artinya Pages diarahkan ke source branch, bukan hasil build. Arahkan Pages ke branch `gh-pages` (Settings → Pages → Deploy from a branch → `gh-pages`) lalu jalankan `npm run deploy` dari repo yang benar.
-2. Remote `origin` di checkout lokal ini menunjuk `SyamayDev/moneytalk.git`, bukan `SyamayDev/SI-MAUNG`. `npm run deploy` mendorong ke `origin`; pastikan remote-nya benar dulu.
-3. Variabel `VITE_*` harus ada saat build (di mesin lokal atau secrets CI).
+`npm run deploy` = `vite build` → `gh-pages-clean` (membuang cache clone lama gh-pages) → `gh-pages -d dist --dotfiles --nojekyll --remove "{**/*,.*}"`, yang mendorong isi `dist/` ke branch **`gh-pages`** di `origin` (`SyamayDev/SI-MAUNG`). Pola `--remove` memastikan file lama — termasuk dotfile — tidak tertinggal di branch publikasi.
+
+**Pengaturan Pages yang wajib (sekali saja):** GitHub → repo `SI-MAUNG` → *Settings* → *Pages* → *Build and deployment* → *Source*: **Deploy from a branch** → Branch: **`gh-pages`**, folder **`/ (root)`** → *Save*. Selama Pages masih menyajikan branch `main`, situs akan memuat `index.html` source (`/src/main.jsx`) yang tidak bisa dijalankan browser → halaman kosong.
+
+Penyebab masalah sebelumnya:
+1. **Halaman kosong** — Pages menyajikan source di branch `main`, bukan hasil build.
+2. **`fatal: a branch named 'gh-pages' already exists`** — cache clone gh-pages (`node_modules/.cache/gh-pages`) berisi branch lokal `gh-pages` dari percobaan yang gagal. Sekarang dibersihkan otomatis oleh `gh-pages-clean` sebelum setiap deploy.
+3. Remote `origin` dulu menunjuk `SyamayDev/moneytalk.git` (dialihkan GitHub ke repo yang sama); kini `https://github.com/SyamayDev/SI-MAUNG.git`.
+
+Variabel `VITE_*` harus ada saat build (di mesin lokal atau secrets CI).
 
 ## Struktur
 
 ```
 src/
   lib/finance/      logika domain murni + test (parser, tanggal, kategori, validasi, ringkasan, jawaban asisten)
-  lib/              klien Supabase, store keuangan & scene, scroll story, preferensi, deteksi perangkat
+  lib/              klien Supabase, store keuangan & scene, scroll story, preferensi, tema, boot loader, pemuat 3D, deteksi perangkat
   services/         akses tabel Supabase & Edge Function
   context/          Auth, Finance (useSyncExternalStore), Toast, Modal (lembar pencatatan)
-  components/       ui/, capture/ (suara-first), transactions/, story/, layouts/, auth/
-  three/            Stage (host three.js), maung/ (model & animasi), world/ (babak & kamera)
+  components/       ui/, capture/ (suara-first), transactions/, story/, layouts/, auth/, scene/ (SceneHost, LoadingScreen, bingkai portrait)
+  three/            Stage (host three.js), maung/ (model, tekstur, animasi), world/ (babak, kamera, tema)
   pages/            Landing, Dashboard, Transactions, Analytics, SavingsGoals, AIChatPage, Settings, auth & onboarding
-  styles/           tokens, base, components, layout, capture, story, pages
+  styles/           tokens (terang + gelap), base, components, layout, capture, story, scene, pages
+tools/              maung-preview (pratinjau model, khusus pengembangan)
 supabase/           migrations, tests, scripts, functions
 ```
 
@@ -112,17 +122,22 @@ supabase/           migrations, tests, scripts, functions
 
 Benar-benar dijalankan:
 - `npm run build` ✔, `npm run lint` ✔ (0 masalah), `npm test` ✔ (24 test).
-- Uji tampilan otomatis (Chrome headless + GPU) pada 8 lebar layar × 10 halaman: tanpa horizontal overflow, tanpa error console. Uji alur end-to-end (38 cek: catat→tinjau→simpan, tanpa insert ganda, edit, hapus, cari, tabungan, asisten, tombol mic mobile, reduced-motion, empty/error state, onboarding) — **dengan backend Supabase tiruan berisi data sintetis**, karena project Supabase asli tidak dapat dijangkau.
+- Uji tampilan otomatis (Chrome headless + GPU) pada 8 lebar layar (320–1440) × 11 halaman × **tema terang & gelap**: tanpa horizontal overflow, tanpa error console. Uji alur end-to-end (38 cek: catat→tinjau→simpan, tanpa insert ganda, edit, hapus, cari, tabungan, asisten, tombol mic mobile, reduced-motion, empty/error state, onboarding) — **dengan backend Supabase tiruan berisi data sintetis**, karena project Supabase asli tidak dapat dijangkau.
+- Loader: urutan langkah, byte unduhan nyata (juga dengan jaringan diperlambat), MAUNG 3D sudah siap saat loader hilang (tanpa poster 2D), aplikasi tidak `inert` lagi — di landing, masuk (390 & 1440), beranda, terang & gelap.
+- Scene: 6× bolak-balik rute tetap 1 canvas, resize langsung ke 390 px, tombol back, 3D dimatikan → poster, reduced-motion → 3D diam (frame identik) dan bergerak lagi bila preferensi dimatikan.
+- Branch `gh-pages` dipublikasikan ke `SyamayDev/SI-MAUNG` dan isinya diuji di server lokal yang meniru GitHub Pages (subpath `/SI-MAUNG/`, `404.html` dengan status 404): root, muat langsung `/login`, `/transactions`, `/analytics`, `/dashboard`, `/savings`, URL tak dikenal — tanpa aset 404, tanpa request ke localhost lain, tema benar.
 - Migration + `rls_check.sql` dijalankan di container lokal `supabase/postgres:17.6.1.166` (skema lama berisi baris & database kosong): idempoten, baris lama tidak berubah, semua cek RLS lolos.
 
 Belum diverifikasi:
-- Project Supabase di `.env.local` tidak dapat diakses (DNS host tidak ditemukan; akun Supabase CLI yang login tidak memiliki project itu). Migration **belum** diterapkan ke database live; skema live belum diinspeksi.
+- **Situs live** `https://syamaydev.github.io/SI-MAUNG/` masih menyajikan source branch `main` sampai sumber Pages diubah ke `gh-pages` (lihat *Deployment*).
+- Project Supabase di `.env.local` tidak dapat diakses (DNS host tidak ditemukan; akun Supabase CLI yang login tidak memiliki project itu). Login/daftar di build live akan gagal dengan pesan jaringan sampai URL/key project yang aktif dipakai saat build. Migration **belum** diterapkan ke database live; skema live belum diinspeksi.
 - Edge Function `parse-transaction` belum di-deploy/diuji (butuh akses project & secret).
 - Pengenalan suara nyata di perangkat fisik (headless tidak punya mikrofon); alur teks dengan parser yang sama sudah diuji.
-- Deployment live belum dilakukan.
+- Safari/iOS dan Firefox belum diuji langsung (hanya Chrome).
 
 ## Masalah terbuka
 
-- Kunci OpenAI yang dulu memakai `VITE_OPENAI_KEY` ikut ter-*bundle* ke JavaScript publik pada build lama. **Rotasi/cabut kunci itu** di dashboard penyedia dan hapus barisnya dari `.env.local`.
+- Kunci OpenAI yang dulu memakai `VITE_OPENAI_KEY` ikut ter-*bundle* ke JavaScript publik pada build lama. **Rotasi/cabut kunci itu** di dashboard penyedia dan hapus barisnya dari `.env.local` (kode sekarang tidak membacanya; build saat ini sudah diperiksa bebas kunci).
+- Di Chrome/Windows (ANGLE D3D11) konsol bisa menampilkan satu *warning* kompilasi shader `X4122` dari chunk bawaan three.js. Itu catatan compiler driver, bukan error aplikasi; render tidak terpengaruh.
 - Folder `retro-future/` (demo template Colorlib) dan `src/components/auth/RetroFutureAuth.*` tidak dipakai aplikasi; lisensi template belum diperiksa — pertimbangkan untuk dihapus.
 - Audio tidak bisa diproses di browser tanpa Web Speech API; tidak ada transkripsi server.

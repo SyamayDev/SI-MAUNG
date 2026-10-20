@@ -32,6 +32,7 @@ export default function Login() {
   return (
     <AuthLayout
       title="Masuk"
+      pose="coin"
       subtitle="Lanjutkan catatan keuanganmu."
       footer={
         <>

@@ -10,6 +10,10 @@
  *   4 Sedikit demi sedikit — a ring of coins lights up to the real savings progress
  *   5 Kendali              — MAUNG waves goodbye; coins orbit again
  * All coins are one InstancedMesh whose layout morphs between chapters.
+ *
+ * Portrait mode (auth & onboarding pages) frames MAUNG inside a page element
+ * with a pose chosen by that page. Light/dark theme changes the lighting and
+ * stage props, never MAUNG's own colours. Reduced motion holds calm poses.
  */
 import {
   AdditiveBlending,
@@ -25,6 +29,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  NormalBlending,
   Object3D,
   PlaneGeometry,
   PointLight,
@@ -99,7 +104,8 @@ export function buildWorld({ tier = "mid" } = {}) {
   const keep = (x) => (disposables.push(x), x);
 
   /* ---------- lights ---------- */
-  root.add(new HemisphereLight("#c6d4ff", "#3b2a1c", 0.6));
+  const hemi = new HemisphereLight("#c6d4ff", "#3b2a1c", 0.6);
+  root.add(hemi);
   root.add(new AmbientLight("#ffffff", 0.12));
   const key = new DirectionalLight("#ffe3b8", 2.1);
   key.position.set(-3, 5, 4.5);
@@ -107,6 +113,9 @@ export function buildWorld({ tier = "mid" } = {}) {
   const rim = new DirectionalLight("#86a0ff", 1.9);
   rim.position.set(3.5, 3, -4);
   root.add(rim);
+  const fill = new DirectionalLight("#ffffff", 0.55);
+  fill.position.set(2, 1.5, 5);
+  root.add(fill);
   const inLight = new PointLight("#20c495", 0, 9, 1.6);
   inLight.position.set(-2.6, 1.6, 1.2);
   const outLight = new PointLight("#ff6b5e", 0, 9, 1.6);
@@ -114,10 +123,8 @@ export function buildWorld({ tier = "mid" } = {}) {
   root.add(inLight, outLight);
 
   /* ---------- stage ---------- */
-  const floor = new Mesh(
-    keep(new PlaneGeometry(9, 9)),
-    keep(new MeshBasicMaterial({ map: keep(floorTexture()), transparent: true, depthWrite: false }))
-  );
+  const floorMaps = { dark: keep(floorTexture("dark")), light: keep(floorTexture("light")) };
+  const floor = new Mesh(keep(new PlaneGeometry(9, 9)), keep(new MeshBasicMaterial({ map: floorMaps.dark, transparent: true, depthWrite: false })));
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.002;
   root.add(floor);
@@ -329,7 +336,43 @@ export function buildWorld({ tier = "mid" } = {}) {
   let waveUntil = 0;
   let cheerUntil = 0;
   let lastCue = -1;
+  let lastMode = "off";
+  let lastPortraitPose = "";
+  let themeApplied = "";
   const pose = { wave: 0, listen: 0, point: 0, coin: 0, cheer: 0 };
+
+  /** Lighting and stage props per colour theme (MAUNG's own colours never change). */
+  function applyTheme(theme, scene3) {
+    themeApplied = theme;
+    const light = theme === "light";
+    hemi.color.set(light ? "#fff3df" : "#c6d4ff");
+    hemi.groundColor.set(light ? "#c99a5c" : "#3b2a1c");
+    hemi.intensity = light ? 0.95 : 0.6;
+    key.intensity = light ? 2.3 : 2.1;
+    rim.color.set(light ? "#ffcf8a" : "#86a0ff");
+    rim.intensity = light ? 1.3 : 1.9;
+    fill.intensity = light ? 0.75 : 0.55;
+    floor.material.map = floorMaps[light ? "light" : "dark"];
+    floor.material.needsUpdate = true;
+    glowMat.color.set(light ? "#ffb347" : "#f2a516");
+    stars.visible = !light;
+    ringOutline.material.color.set(light ? "#c98a12" : "#5b6bd0");
+    ringOutline.material.blending = light ? NormalBlending : AdditiveBlending;
+    soundRings.forEach((r) => (r.material.blending = light ? NormalBlending : AdditiveBlending));
+    COLORS.dim.set(light ? "#cdb995" : "#2c3468");
+    if (scene3) scene3.environmentIntensity = light ? 0.6 : 0.45;
+  }
+
+  // Portrait poses requested by pages (auth, onboarding).
+  const PORTRAIT = {
+    wave: { pose: { wave: 1 }, expression: "happy" },
+    listen: { pose: { listen: 1 }, expression: "listening" },
+    point: { pose: { point: 1 }, expression: "idle" },
+    coin: { pose: { coin: 1 }, expression: "happy" },
+    cheer: { pose: { cheer: 1 }, expression: "happy" },
+    thinking: { pose: {}, expression: "thinking" },
+    idle: { pose: {}, expression: "idle" },
+  };
 
   function chapterLook(c, t, camera, out) {
     switch (c) {
@@ -349,17 +392,23 @@ export function buildWorld({ tier = "mid" } = {}) {
     root,
     update(state, delta) {
       const { camera, size, clock } = state;
+      const still = store.reducedMotion;
       const t = clock.elapsedTime;
+      const tm = still ? 0 : t; // motion time: frozen for reduced motion
       const dt = Math.min(delta, 0.05);
-      if (t0 < 0) {
+      if (store.theme !== themeApplied) applyTheme(store.theme, state.scene);
+      const portrait = store.mode === "portrait";
+      const snap = lastMode === "off" || !cam.init || still;
+      if (t0 < 0 || (lastMode === "off" && store.mode !== "off")) {
         t0 = t;
         waveUntil = t + 2.8; // hello!
       }
+      lastMode = store.mode;
       if (store.data !== dataRef) applyData();
 
-      const s = store.story;
+      const s = portrait ? 0.3 : store.story;
       const { a, b, w } = chapterBlend(s, CHAPTERS);
-      const tall = store.layout === "tall";
+      const tall = !portrait && store.layout === "tall";
 
       /* camera framing */
       const fa = FRAMES[a];
@@ -376,7 +425,13 @@ export function buildWorld({ tier = "mid" } = {}) {
       let cy = 0.53;
       let bw = mix(fa.screen[1], fb.screen[1], w);
       let bh = 0.78;
-      if (tall) {
+      if (portrait) {
+        const f = store.frame;
+        cx = f.x + f.w / 2;
+        cy = f.y + f.h / 2;
+        bw = f.w * 0.95;
+        bh = f.h * 0.95;
+      } else if (tall) {
         const bandTop = store.bandTop;
         const bands = store.bandBottom;
         const bottom = lerp(bands[a] ?? 0.5, bands[b] ?? 0.5, w);
@@ -390,7 +445,7 @@ export function buildWorld({ tier = "mid" } = {}) {
       const tanHalf = Math.tan((camera.fov * Math.PI) / 360);
       const dist = Math.max(frameSize[1] / (bh * 2 * tanHalf), frameSize[0] / (bw * 2 * tanHalf * aspect));
       const camTarget = tmp.copy(target).addScaledVector(dir, dist);
-      const k = cam.init ? 3.2 : 1000;
+      const k = snap ? 1000 : 3.2;
       cam.init = true;
       cam.pos.set(damp(cam.pos.x, camTarget.x, k, dt), damp(cam.pos.y, camTarget.y, k, dt), damp(cam.pos.z, camTarget.z, k, dt));
       cam.look.set(damp(cam.look.x, target.x, k, dt), damp(cam.look.y, target.y, k, dt), damp(cam.look.z, target.z, k, dt));
@@ -403,8 +458,8 @@ export function buildWorld({ tier = "mid" } = {}) {
       /* MAUNG placement, mood and gestures */
       const mx = mix(fa.maung[0], fb.maung[0], w);
       const mr = mix(fa.maung[1], fb.maung[1], w);
-      maung.root.position.x = damp(maung.root.position.x, mx, 4, dt);
-      maung.root.rotation.y = damp(maung.root.rotation.y, mr, 4, dt);
+      maung.root.position.x = damp(maung.root.position.x, portrait ? 0 : mx, snap ? 1000 : 4, dt);
+      maung.root.rotation.y = damp(maung.root.rotation.y, portrait ? -0.2 : mr, snap ? 1000 : 4, dt);
 
       if (store.cue.at > lastCue) {
         lastCue = store.cue.at;
@@ -431,6 +486,18 @@ export function buildWorld({ tier = "mid" } = {}) {
         pose.wave = 0;
       } else if (store.mood === "thinking") expression = "thinking";
       else if (store.mood === "happy") expression = "happy";
+      if (portrait) {
+        const p = PORTRAIT[store.portraitPose] || PORTRAIT.idle;
+        if (store.portraitPose !== lastPortraitPose) {
+          lastPortraitPose = store.portraitPose;
+          waveUntil = t + 2.8;
+          if (store.portraitPose === "cheer" && !still) animator.hop(t);
+        }
+        for (const key of Object.keys(pose)) pose[key] = p.pose[key] || 0;
+        expression = p.expression;
+        // a greeting wave when the page opens, then a calm happy idle
+        if (store.portraitPose === "wave") pose.wave = smooth(clamp01((waveUntil - t) / 0.6));
+      }
       if (t < cheerUntil) {
         expression = "happy";
         pose.cheer = 1;
@@ -439,19 +506,20 @@ export function buildWorld({ tier = "mid" } = {}) {
         pose.point = 0;
       }
 
-      chapterLook(a, t, camera, lookA);
-      chapterLook(b, t, camera, lookB);
+      chapterLook(portrait ? 0 : a, tm, camera, lookA);
+      chapterLook(portrait ? 0 : b, tm, camera, lookB);
       lookTarget.lerpVectors(lookA, lookB, w);
-      animator.update(dt, t, { look: lookTarget, expression, pose });
+      if (still) pose.wave = 0; // no repeating gestures with reduced motion
+      animator.update(dt, t, { look: lookTarget, expression, pose, still });
       maung.rig.mouthOpen.getWorldPosition(mouthWorld);
 
       /* chapter props */
       const p1 = presence(s, 1);
       chip.scale.setScalar(Math.max(0.001, smooth(p1)));
-      chip.position.y = CHIP_POS.y + Math.sin(t * 1.4) * 0.05;
-      chip.rotation.z = Math.sin(t * 0.9) * 0.03;
+      chip.position.y = CHIP_POS.y + Math.sin(tm * 1.4) * 0.05;
+      chip.rotation.z = Math.sin(tm * 0.9) * 0.03;
       soundRings.forEach((ring, i) => {
-        const ph = frac(t * 0.55 + i / 3);
+        const ph = still ? 0.35 + i * 0.2 : frac(tm * 0.55 + i / 3);
         ring.position.copy(mouthWorld).lerp(CHIP_POS, ph * 0.55);
         ring.lookAt(CHIP_POS);
         ring.scale.setScalar(0.4 + ph * 1.3);
@@ -465,17 +533,17 @@ export function buildWorld({ tier = "mid" } = {}) {
       const p4 = presence(s, 4);
       ringOutline.material.opacity = p4 * 0.45;
       const goal = store.data.demo ? holdProgress(s, 4) * 0.8 : store.data.goal ?? 0;
-      ringFill = damp(ringFill, p4 > 0.5 ? goal : 0, 2.5, dt);
+      ringFill = damp(ringFill, p4 > 0.5 ? goal : 0, still ? 1000 : 2.5, dt);
 
-      glowMat.opacity = 0.18 + p4 * ringFill * 0.25 + Math.sin(t * 1.2) * 0.03;
-      stars.rotation.y = t * 0.01;
+      glowMat.opacity = (themeApplied === "light" ? 0.32 : 0.18) + p4 * ringFill * 0.25 + Math.sin(tm * 1.2) * 0.03;
+      stars.rotation.y = tm * 0.01;
 
       /* coins */
       for (let i = 0; i < N; i++) {
         const wi = a === b ? 1 : clamp01(w * 1.5 - (i / N) * 0.5);
-        let sc = layout(b, i, t, pB, rB, cB);
+        let sc = layout(b, i, tm, pB, rB, cB);
         if (a !== b && wi < 1) {
-          const sa = layout(a, i, t, pA, rA, cA);
+          const sa = layout(a, i, tm, pA, rA, cA);
           const e = smooth(wi);
           pB.lerpVectors(pA, pB, e);
           rB.lerpVectors(rA, rB, e);

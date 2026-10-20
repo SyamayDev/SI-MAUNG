@@ -203,7 +203,7 @@ export default function AIChatPage() {
           className="textarea chat__input"
           rows={1}
           maxLength={300}
-          placeholder={listening ? speech.transcript || "Mendengarkan…" : "Tulis transaksi atau pertanyaan…"}
+          placeholder={listening ? speech.transcript || "Mendengarkan…" : "Tulis pesan…"}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {

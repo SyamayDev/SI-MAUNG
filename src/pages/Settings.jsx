@@ -1,5 +1,5 @@
 ﻿import { useState } from "react";
-import { CheckCircle2, LogOut, Mic, MicOff } from "lucide-react";
+import { CheckCircle2, LogOut, Mic, MicOff, Monitor, Moon, Sun } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import Input, { PasswordInput } from "../components/ui/Input";
@@ -8,11 +8,11 @@ import Switch from "../components/ui/Switch";
 import Segmented from "../components/ui/Segmented";
 import { setPreference, usePreferences } from "../lib/preferences";
 import { speechSupported } from "../hooks/useSpeechCapture";
-import { canRender3D } from "../lib/device";
+import { canRender3D, prefersReducedMotion } from "../lib/device";
+import { useTheme } from "../lib/theme";
 
 const REASONS = {
   off: "Scene 3D dimatikan — tampilan memakai ilustrasi 2D.",
-  "reduced-motion": "Perangkatmu meminta gerakan dikurangi, jadi ilustrasi 2D dipakai.",
   "no-webgl": "Browser ini tidak mendukung WebGL — ilustrasi 2D dipakai.",
   software: "Grafis perangkat ini terlalu terbatas untuk 3D yang mulus — ilustrasi 2D dipakai.",
 };
@@ -92,6 +92,7 @@ function PasswordForm() {
 export default function Settings() {
   const prefs = usePreferences();
   const { logout } = useAuth();
+  const { preference: themePref, theme, setPreference: setTheme } = useTheme();
   const scene = canRender3D();
 
   return (
@@ -137,8 +138,24 @@ export default function Settings() {
           <h2 className="panel__title" id="set-display">
             Tampilan
           </h2>
-          <p className="field__label" style={{ marginTop: "var(--sp-4)" }} id="scene-label">
-            Scene 3D MAUNG di beranda
+          <p className="field__label" style={{ marginTop: "var(--sp-4)" }}>
+            Tema warna
+          </p>
+          <Segmented
+            label="Tema warna"
+            value={themePref}
+            onChange={setTheme}
+            options={[
+              { value: "light", label: "Terang", icon: Sun },
+              { value: "dark", label: "Gelap", icon: Moon },
+              { value: "system", label: "Sistem", icon: Monitor },
+            ]}
+          />
+          <p className="field__hint" style={{ marginTop: "var(--sp-2)" }}>
+            {themePref === "system" ? `Mengikuti pengaturan perangkat (saat ini ${theme === "dark" ? "gelap" : "terang"}).` : "Tersimpan di perangkat ini."}
+          </p>
+          <p className="field__label" style={{ marginTop: "var(--sp-5)" }}>
+            Scene 3D MAUNG
           </p>
           <Segmented
             label="Scene 3D MAUNG"
@@ -152,7 +169,8 @@ export default function Settings() {
           <p className="field__hint" style={{ marginTop: "var(--sp-2)" }}>
             {scene.ok ? (
               <>
-                <CheckCircle2 size={13} aria-hidden="true" style={{ display: "inline", verticalAlign: "-2px" }} /> Perangkat ini menampilkan MAUNG 3D. Matikan untuk menghemat baterai.
+                <CheckCircle2 size={13} aria-hidden="true" style={{ display: "inline", verticalAlign: "-2px" }} /> Perangkat ini menampilkan MAUNG 3D
+                {prefersReducedMotion() ? " dalam pose tenang (gerakan dikurangi sesuai pengaturan perangkat)" : ""}. Matikan untuk menghemat baterai.
               </>
             ) : (
               REASONS[scene.reason] || "Ilustrasi 2D dipakai."

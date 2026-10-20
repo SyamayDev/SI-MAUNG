@@ -38,24 +38,25 @@
 }
 
 .btn--primary {
-  --btn-bg: var(--c-ink);
-  --btn-fg: var(--c-on-night);
-  --btn-border: var(--c-ink);
+  --btn-bg: var(--c-inverse);
+  --btn-fg: var(--c-on-inverse);
+  --btn-border: var(--c-inverse);
 }
 
 .btn--primary:hover:not(:disabled) {
-  --btn-bg: var(--c-ink-2);
+  --btn-bg: var(--c-inverse-hover);
+  border-color: var(--c-inverse-hover);
 }
 
 .btn--amber {
   --btn-bg: var(--c-amber);
-  --btn-fg: var(--c-ink);
+  --btn-fg: var(--c-on-amber);
   --btn-border: var(--c-amber);
   box-shadow: 0 10px 24px -12px rgb(221 139 0 / 0.9);
 }
 
 .btn--amber:hover:not(:disabled) {
-  --btn-bg: #f7b336;
+  --btn-bg: var(--c-amber-hover);
   border-color: var(--c-amber-deep);
 }
 
@@ -70,25 +71,25 @@
 }
 
 .btn--danger {
-  --btn-bg: var(--c-expense);
+  --btn-bg: var(--c-expense-strong);
   --btn-fg: #fff;
-  --btn-border: var(--c-expense);
+  --btn-border: var(--c-expense-strong);
 }
 
 .btn--danger:hover:not(:disabled) {
-  --btn-bg: #a52a30;
-  border-color: #a52a30;
+  --btn-bg: #922a30;
+  border-color: #922a30;
 }
 
-.on-night .btn:not(.btn--amber):not(.btn--primary) {
-  --btn-bg: rgb(255 255 255 / 0.06);
-  --btn-fg: var(--c-on-night);
-  --btn-border: rgb(255 255 255 / 0.22);
+.on-stage .btn:not(.btn--amber):not(.btn--primary):not(.btn--danger) {
+  --btn-bg: var(--c-stage-glass);
+  --btn-fg: var(--c-on-stage);
+  --btn-border: var(--c-stage-line);
 }
 
-.on-night .btn:not(.btn--amber):not(.btn--primary):hover:not(:disabled) {
-  --btn-bg: rgb(255 255 255 / 0.12);
-  border-color: rgb(255 255 255 / 0.5);
+.on-stage .btn:not(.btn--amber):not(.btn--primary):not(.btn--danger):hover:not(:disabled) {
+  --btn-bg: var(--c-stage-glass-hover);
+  border-color: var(--c-stage-line-strong);
 }
 
 .btn--lg {
@@ -121,8 +122,8 @@
   background: var(--c-surface-2);
 }
 
-.on-night .icon-btn:hover {
-  background: rgb(255 255 255 / 0.1);
+.on-stage .icon-btn:hover {
+  background: var(--c-stage-glass-hover);
 }
 
 .icon-btn--danger:hover {
@@ -139,9 +140,14 @@
   text-decoration-color: var(--c-amber-deep);
 }
 
-.on-night .link-btn {
-  color: var(--c-on-night);
+.on-stage .link-btn {
+  color: var(--c-on-stage);
   text-decoration-color: var(--c-amber);
+}
+
+.btn:focus-visible,
+.icon-btn:focus-visible {
+  outline-offset: 3px;
 }
 
 .spinner {
@@ -216,7 +222,7 @@
 
 .input::placeholder,
 .textarea::placeholder {
-  color: #8d8ea3;
+  color: var(--c-placeholder);
 }
 
 .input:hover,
@@ -230,7 +236,7 @@
 .textarea:focus {
   outline: none;
   border-color: var(--c-ink);
-  box-shadow: 0 0 0 4px rgb(31 67 201 / 0.16);
+  box-shadow: 0 0 0 4px var(--c-focus-ring);
 }
 
 .input[aria-invalid="true"],
@@ -241,7 +247,16 @@
 
 .input--review {
   border-color: var(--c-amber-deep);
-  background: #fffaf0;
+  background: var(--c-review-bg);
+}
+
+.input:disabled,
+.select:disabled,
+.textarea:disabled,
+.input[readonly] {
+  background: var(--c-surface-2);
+  color: var(--c-ink-mute);
+  cursor: not-allowed;
 }
 
 .textarea {
@@ -341,13 +356,17 @@
   box-shadow: var(--sh-1);
 }
 
+.segmented__option:hover:not([aria-checked="true"]) {
+  color: var(--c-ink);
+}
+
 .segmented__option[data-tone="income"][aria-checked="true"] {
-  background: var(--c-income);
+  background: var(--c-income-strong);
   color: #fff;
 }
 
 .segmented__option[data-tone="expense"][aria-checked="true"] {
-  background: var(--c-expense);
+  background: var(--c-expense-strong);
   color: #fff;
 }
 
@@ -399,19 +418,19 @@
 
 .callout--error {
   background: var(--c-expense-soft);
-  border-color: #f1b9b2;
-  color: #8c2328;
+  border-color: var(--c-error-line);
+  color: var(--c-error-text);
 }
 
 .callout--success {
   background: var(--c-income-soft);
-  border-color: #a9dcc8;
-  color: #075540;
+  border-color: var(--c-success-line);
+  color: var(--c-success-text);
 }
 
 .callout--warn {
   background: var(--c-warn-soft);
-  border-color: #f0d38f;
+  border-color: var(--c-warn-line);
   color: var(--c-warn);
 }
 
@@ -467,14 +486,14 @@ button.chip:hover {
   border-color: var(--c-ink);
 }
 
-.on-night .chip {
-  background: rgb(255 255 255 / 0.08);
-  border-color: rgb(255 255 255 / 0.16);
-  color: var(--c-on-night-soft);
+.on-stage .chip {
+  background: var(--c-stage-glass);
+  border-color: var(--c-stage-line);
+  color: var(--c-on-stage-soft);
 }
 
-.on-night button.chip:hover {
-  border-color: rgb(255 255 255 / 0.55);
+.on-stage button.chip:hover {
+  border-color: var(--c-stage-line-strong);
 }
 
 .dot {
@@ -493,7 +512,7 @@ button.chip:hover {
   height: 42px;
   border-radius: 13px;
   color: var(--cat, var(--c-ink-soft));
-  background: color-mix(in srgb, var(--cat, #7d8499) 14%, white);
+  background: color-mix(in srgb, var(--cat, #7d8499) 16%, var(--c-surface));
 }
 
 /* Progress */
@@ -643,7 +662,7 @@ button.chip:hover {
   display: grid;
   place-items: center;
   padding: var(--sp-4);
-  background: rgb(7 11 31 / 0.55);
+  background: var(--c-backdrop);
   backdrop-filter: blur(3px);
   animation: fade-in var(--dur-2) var(--ease-out);
 }
@@ -684,7 +703,10 @@ button.chip:hover {
   flex: 1;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--sp-2) var(--sp-6) var(--sp-6);
+  --dialog-pad: var(--sp-6);
+  padding: var(--sp-2) var(--dialog-pad) var(--dialog-pad);
+  /* focused fields scroll clear of the sticky form actions */
+  scroll-padding-bottom: 96px;
 }
 
 .dialog__actions {
@@ -693,6 +715,19 @@ button.chip:hover {
   flex-wrap: wrap;
   gap: var(--sp-2);
   margin-top: var(--sp-5);
+}
+
+/* A long form scrolls inside the dialog; its save/cancel row stays in view. */
+.dialog__body form > .dialog__actions {
+  position: sticky;
+  /* sticky insets are measured inside the body's padding; reach its edge */
+  bottom: calc(var(--dialog-pad) * -1);
+  z-index: 1;
+  margin-inline: calc(var(--dialog-pad) * -1);
+  margin-bottom: calc(var(--dialog-pad) * -1);
+  padding: var(--sp-3) var(--dialog-pad) var(--dialog-pad);
+  background: var(--c-surface);
+  border-top: 1px solid var(--c-line);
 }
 
 @media (max-width: 639px) {
@@ -727,7 +762,7 @@ button.chip:hover {
   }
 
   .dialog__body {
-    padding: var(--sp-2) var(--sp-5) var(--sp-5);
+    --dialog-pad: var(--sp-5);
   }
 
   .dialog__actions .btn {
@@ -779,8 +814,8 @@ button.chip:hover {
   gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
   border-radius: var(--r-md);
-  background: var(--c-ink);
-  color: var(--c-on-night);
+  background: var(--c-inverse);
+  color: var(--c-on-inverse);
   box-shadow: var(--sh-3);
   font-size: var(--fs-sm);
   font-weight: 650;
@@ -793,15 +828,15 @@ button.chip:hover {
 }
 
 .toast--success .toast__icon {
-  color: #5fe0b7;
+  color: var(--c-toast-success);
 }
 
 .toast--error .toast__icon {
-  color: #ff9a8f;
+  color: var(--c-toast-error);
 }
 
 .toast--info .toast__icon {
-  color: var(--c-amber);
+  color: var(--c-toast-info);
 }
 
 .toast__message {
@@ -809,14 +844,15 @@ button.chip:hover {
 }
 
 .toast__action {
-  padding: 6px 10px;
+  min-height: 36px;
+  padding: 6px 12px;
   border-radius: var(--r-pill);
-  color: var(--c-amber);
+  color: var(--c-toast-info);
   font-weight: 800;
 }
 
 .toast__action:hover {
-  background: rgb(255 255 255 / 0.1);
+  background: color-mix(in srgb, var(--c-on-inverse) 12%, transparent);
 }
 
 .toast__close {
@@ -825,12 +861,12 @@ button.chip:hover {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  color: var(--c-on-night-mute);
+  color: var(--c-on-inverse-mute);
 }
 
 .toast__close:hover {
-  background: rgb(255 255 255 / 0.1);
-  color: var(--c-on-night);
+  background: color-mix(in srgb, var(--c-on-inverse) 12%, transparent);
+  color: var(--c-on-inverse);
 }
 
 /* ================= Misc ================= */
@@ -895,49 +931,49 @@ details.disclosure[open] > summary::before {
 }
 
 /* Paper panels inside night sections use the paper styles again. */
-.on-night .panel {
+.on-stage .panel {
   color: var(--c-ink);
 }
 
-.on-night .panel .chip {
+.on-stage .panel .chip {
   background: var(--c-surface-2);
   border-color: var(--c-line);
   color: var(--c-ink-soft);
 }
 
-.on-night .panel button.chip:hover {
+.on-stage .panel button.chip:hover {
   border-color: var(--c-ink);
 }
 
-.on-night .panel .btn:not(.btn--amber):not(.btn--primary):not(.btn--danger) {
+.on-stage .panel .btn:not(.btn--amber):not(.btn--primary):not(.btn--danger) {
   --btn-bg: var(--c-surface);
   --btn-fg: var(--c-ink);
   --btn-border: var(--c-line-strong);
 }
 
-.on-night .panel .btn:not(.btn--amber):not(.btn--primary):not(.btn--danger):hover:not(:disabled) {
+.on-stage .panel .btn:not(.btn--amber):not(.btn--primary):not(.btn--danger):hover:not(:disabled) {
   --btn-bg: var(--c-surface);
   border-color: var(--c-ink);
 }
 
-.on-night .panel .link-btn {
+.on-stage .panel .link-btn {
   color: var(--c-ink);
   text-decoration-color: var(--c-amber-deep);
 }
 
-.on-night .panel .eyebrow {
+.on-stage .panel .eyebrow {
   color: var(--c-ink-mute);
 }
 
-.on-night .panel .accent-italic {
-  color: var(--c-amber-deep);
+.on-stage .panel .accent-italic {
+  color: var(--c-accent-text);
 }
 
-.on-night .panel :focus-visible {
+.on-stage .panel :focus-visible {
   outline-color: var(--c-focus);
 }
 
-.on-night .panel .icon-btn:hover {
+.on-stage .panel .icon-btn:hover {
   background: var(--c-surface-2);
 }
 

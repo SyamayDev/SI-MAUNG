@@ -6,7 +6,7 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, BarChart3, LogIn, Mic, PiggyBank, ShieldCheck, Sparkles } from "lucide-react";
-import StoryBackdrop from "../components/story/StoryBackdrop";
+import ThemeToggle from "../components/ui/ThemeToggle";
 import ChapterRail, { Chapter, Kicker } from "../components/story/ChapterRail";
 import ParsePreview from "../components/story/ParsePreview";
 import Logo from "../components/ui/Logo";
@@ -32,11 +32,12 @@ export default function Landing() {
       <a href="#mulai" className="skip-link">
         Lewati ke konten
       </a>
-      <header className="landing__bar on-night">
+      <header className="landing__bar on-stage">
         <Link to="/" aria-label="SI-MAUNG — Beranda">
           <Logo size={36} />
         </Link>
-        <nav className="row" aria-label="Akun" style={{ gap: "var(--sp-2)" }}>
+        <nav className="landing__actions" aria-label="Akun dan tampilan">
+          <ThemeToggle />
           <Link to="/login" className="btn btn--sm">
             <LogIn size={15} aria-hidden="true" /> Masuk
           </Link>
@@ -47,10 +48,9 @@ export default function Landing() {
       </header>
 
       <main className="story story--landing" ref={storyRef} id="mulai">
-        <StoryBackdrop />
         <ChapterRail labels={LABELS} />
 
-        <Chapter index={0} labelledBy="l-hero" className="on-night">
+        <Chapter index={0} labelledBy="l-hero" className="on-stage">
           <p className="eyebrow reveal">
             <Sparkles size={14} aria-hidden="true" /> Sistem Informasi Manajemen Keuangan
           </p>
@@ -70,7 +70,7 @@ export default function Landing() {
           </div>
         </Chapter>
 
-        <Chapter index={1} labelledBy="l-voice" className="on-night">
+        <Chapter index={1} labelledBy="l-voice" className="on-stage">
           <Kicker n={2}>Catat dengan suara</Kicker>
           <h2 id="l-voice" className="chapter__title display reveal" style={{ "--i": 1 }}>
             Ucapkan, <span className="accent-italic">MAUNG catat.</span>
@@ -83,7 +83,7 @@ export default function Landing() {
           </div>
         </Chapter>
 
-        <Chapter index={2} labelledBy="l-flow" className="on-night">
+        <Chapter index={2} labelledBy="l-flow" className="on-stage">
           <Kicker n={3}>Pemasukan & pengeluaran</Kicker>
           <h2 id="l-flow" className="chapter__title display reveal" style={{ "--i": 1 }}>
             Setiap arus <span className="accent-italic">punya arti.</span>
@@ -96,7 +96,7 @@ export default function Landing() {
           </p>
         </Chapter>
 
-        <Chapter index={3} labelledBy="l-pattern" className="on-night">
+        <Chapter index={3} labelledBy="l-pattern" className="on-stage">
           <Kicker n={4}>Analitik</Kicker>
           <h2 id="l-pattern" className="chapter__title display reveal" style={{ "--i": 1 }}>
             Lihat pola, <span className="accent-italic">bukan tebakan.</span>
@@ -109,7 +109,7 @@ export default function Landing() {
           </p>
         </Chapter>
 
-        <Chapter index={4} labelledBy="l-savings" className="on-night">
+        <Chapter index={4} labelledBy="l-savings" className="on-stage">
           <Kicker n={5}>Tujuan tabungan</Kicker>
           <h2 id="l-savings" className="chapter__title display reveal" style={{ "--i": 1 }}>
             Sedikit demi <span className="accent-italic">sedikit.</span>
@@ -122,7 +122,7 @@ export default function Landing() {
           </p>
         </Chapter>
 
-        <Chapter index={5} labelledBy="l-control" className="on-night">
+        <Chapter index={5} labelledBy="l-control" className="on-stage">
           <Kicker n={6}>Kendali</Kicker>
           <h2 id="l-control" className="chapter__title display reveal" style={{ "--i": 1 }}>
             Keuanganmu, <span className="accent-italic">tetap dalam kendalimu.</span>

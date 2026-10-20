@@ -1,25 +1,33 @@
 /**
  * Canvas-painted textures for MAUNG — nothing is downloaded.
- * SphereGeometry UVs: u = 0.25 is the front (+Z), v = 0 is the top.
+ *
+ * The head texture is painted in the same angular "face coordinates" the
+ * geometry uses (see headCoords.js): phi = 0 is the front, phi > 0 is
+ * MAUNG's left (+x), theta = 0 is the crown. The head sphere is generated
+ * with its UV seam at the back, so u = 0.5 + phi / 2π and v = theta / π.
+ * Brush widths are corrected for the sphere's horizontal stretch (1 / sin θ),
+ * so stripes keep their drawn thickness on the model.
  */
 import { CanvasTexture, ClampToEdgeWrapping, LinearMipmapLinearFilter, RepeatWrapping, SRGBColorSpace } from "three";
+import { FEATURES } from "./headCoords.js";
 
 export const MAUNG_COLORS = {
-  fur: "#f3920f",
-  furLight: "#f8b544",
-  cream: "#ffe7c4",
-  stripe: "#3a2214",
-  nose: "#5a3320",
-  suit: "#1d2a66",
-  suitDeep: "#141e4f",
-  shirt: "#fbf8f1",
-  tie: "#f4b324",
-  shoe: "#15161d",
+  fur: "#f39417",
+  furDeep: "#e07d0a",
+  furLight: "#f9b046",
+  cream: "#fff4e2",
+  stripe: "#1d140f",
+  nose: "#3a1f14",
+  suit: "#1e2d6e",
+  suitDeep: "#141f52",
+  shirt: "#fbf8f2",
+  tie: "#f7c21e",
+  shoe: "#14151b",
   gold: "#f6c445",
   goldDeep: "#c98a12",
-  inner: "#f6c8b6",
-  mouth: "#7a2a22",
-  tongue: "#e9776e",
+  inner: "#f6d6c2",
+  mouth: "#6e1f1a",
+  tongue: "#ee7a6f",
 };
 
 function canvas(w, h) {
@@ -32,99 +40,226 @@ function canvas(w, h) {
 function finish(c, { srgb = true, repeat = false } = {}) {
   const t = new CanvasTexture(c);
   if (srgb) t.colorSpace = SRGBColorSpace;
-  t.anisotropy = 4;
+  t.anisotropy = 8;
   t.minFilter = LinearMipmapLinearFilter;
   t.wrapS = repeat ? RepeatWrapping : ClampToEdgeWrapping;
   return t;
 }
 
-/** A tapered brush stroke (tiger stripe) from (x1,y1) to (x2,y2). */
-function stripe(ctx, x1, y1, x2, y2, width) {
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const len = Math.hypot(dx, dy) || 1;
-  const nx = (-dy / len) * width;
-  const ny = (dx / len) * width;
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.quadraticCurveTo(x1 + dx * 0.45 + nx, y1 + dy * 0.45 + ny, x2, y2);
-  ctx.quadraticCurveTo(x1 + dx * 0.55 - nx * 0.6, y1 + dy * 0.55 - ny * 0.6, x1, y1);
-  ctx.fill();
+/* ---------- face-coordinate painter ---------- */
+
+function painter(ctx, W, H) {
+  const toPx = (phi, theta) => [(0.5 + phi / (2 * Math.PI)) * W, (theta / Math.PI) * H];
+  const stretch = (theta) => 1 / Math.max(0.25, Math.sin(theta));
+
+  /**
+   * Tapered brush stroke along a path of [phi, theta] points.
+   * widths: [start, end] in radians of surface arc.
+   */
+  function brush(points, [w0, w1], color) {
+    // dense Catmull-Rom sampling in angular space
+    const pts = [];
+    const n = points.length;
+    for (let i = 0; i < n - 1; i++) {
+      const p0 = points[Math.max(0, i - 1)];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[Math.min(n - 1, i + 2)];
+      for (let k = 0; k < 10; k++) {
+        const t = k / 10;
+        const t2 = t * t;
+        const t3 = t2 * t;
+        const f = (a, b, c, d) => 0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+        pts.push([f(p0[0], p1[0], p2[0], p3[0]), f(p0[1], p1[1], p2[1], p3[1])]);
+      }
+    }
+    pts.push(points[n - 1]);
+    const left = [];
+    const right = [];
+    pts.forEach((p, i) => {
+      const a = pts[Math.max(0, i - 1)];
+      const b = pts[Math.min(pts.length - 1, i + 1)];
+      const sinT = Math.max(0.25, Math.sin(p[1]));
+      // tangent in physical (arc) space
+      let tx = (b[0] - a[0]) * sinT;
+      let ty = b[1] - a[1];
+      const len = Math.hypot(tx, ty) || 1;
+      tx /= len;
+      ty /= len;
+      const u = i / (pts.length - 1);
+      // smooth taper: full in the middle part, pointed at the thin end
+      const w = (w0 + (w1 - w0) * u) * (0.35 + 0.65 * Math.sin(Math.min(1, u * 1.15 + 0.08) * Math.PI) ** 0.35);
+      const nx = -ty * (w / 2);
+      const ny = tx * (w / 2);
+      left.push(toPx(p[0] + nx / sinT, p[1] + ny));
+      right.push(toPx(p[0] - nx / sinT, p[1] - ny));
+    });
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(...left[0]);
+    left.forEach((q) => ctx.lineTo(...q));
+    right.reverse().forEach((q) => ctx.lineTo(...q));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /** Filled blob from [phi, theta] outline points (smoothed). */
+  function blob(points, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    const px = points.map(([p, t]) => toPx(p, t));
+    const n = px.length;
+    ctx.moveTo((px[n - 1][0] + px[0][0]) / 2, (px[n - 1][1] + px[0][1]) / 2);
+    for (let i = 0; i < n; i++) {
+      const a = px[i];
+      const b = px[(i + 1) % n];
+      ctx.quadraticCurveTo(a[0], a[1], (a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /** Ellipse measured in surface arc (radians), drawn as a polygon. */
+  function ellipse(phi, theta, rw, rh, color, rot = 0) {
+    const pts = [];
+    for (let i = 0; i < 40; i++) {
+      const a = (i / 40) * Math.PI * 2;
+      const dx = Math.cos(a) * rw;
+      const dy = Math.sin(a) * rh;
+      const x = dx * Math.cos(rot) - dy * Math.sin(rot);
+      const y = dx * Math.sin(rot) + dy * Math.cos(rot);
+      pts.push([phi + x * stretch(theta + y), theta + y]);
+    }
+    blob(pts, color);
+  }
+
+  return { brush, blob, ellipse, toPx };
 }
 
-/** Head fur: amber with forehead and side stripes, lighter towards the face. */
-export function headTexture() {
+/** The tiger stripes, shared by the colour map and the sheen map. */
+function paintStripes(brush, S) {
+  // forehead: a bold central wedge and two pairs of chevrons, thick just above the brows
+  brush([[0, 0.4], [0, 0.72], [0, 1.08]], [0.07, 0.17], S);
+  for (const s of [-1, 1]) {
+    brush([[s * 0.16, 0.5], [s * 0.25, 0.74], [s * 0.3, 0.96]], [0.05, 0.13], S);
+    brush([[s * 0.44, 0.44], [s * 0.58, 0.58], [s * 0.66, 0.7]], [0.04, 0.09], S);
+    // temple → cheek stripes pointing towards the face; the low ones cut into the cream jowls
+    brush([[s * 1.32, 1.0], [s * 1.06, 1.05], [s * 0.78, 1.13]], [0.13, 0.03], S);
+    brush([[s * 1.36, 1.32], [s * 1.08, 1.36], [s * 0.8, 1.44]], [0.14, 0.03], S);
+    brush([[s * 1.34, 1.66], [s * 1.08, 1.71], [s * 0.84, 1.8]], [0.13, 0.03], S);
+    brush([[s * 1.26, 1.98], [s * 1.04, 2.05], [s * 0.86, 2.15]], [0.1, 0.025], S);
+    // crown and back of the head
+    for (let i = 0; i < 4; i++) {
+      const p = s * (0.82 + i * 0.5);
+      brush([[p, 0.3], [p + s * 0.06, 0.62], [p + s * 0.02, 0.98]], [0.15, 0.03], S);
+    }
+  }
+  brush([[Math.PI - 0.15, 0.32], [Math.PI, 0.7], [Math.PI + 0.05, 1.05]], [0.15, 0.03], S);
+  brush([[-Math.PI + 0.15, 0.32], [-Math.PI, 0.7], [-Math.PI - 0.05, 1.05]], [0.15, 0.03], S);
+}
+
+/**
+ * Sheen strength across the head: full on fur, none on the stripes — so the
+ * velvet highlight never washes the stripes out to brown.
+ */
+export function headSheenTexture() {
   const W = 1024;
   const H = 512;
   const [c, ctx] = canvas(W, H);
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, "#e9840a");
-  g.addColorStop(0.55, MAUNG_COLORS.fur);
-  g.addColorStop(1, "#f6a530");
-  ctx.fillStyle = g;
+  ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
-
-  // soft highlight on the forehead
-  const hl = ctx.createRadialGradient(W * 0.25, H * 0.3, 10, W * 0.25, H * 0.3, H * 0.4);
-  hl.addColorStop(0, "rgba(255,214,140,0.55)");
-  hl.addColorStop(1, "rgba(255,214,140,0)");
-  ctx.fillStyle = hl;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.fillStyle = MAUNG_COLORS.stripe;
-  const fx = W * 0.25; // front
-  // forehead: a central mark flanked by two pairs of chevrons
-  stripe(ctx, fx, H * 0.06, fx, H * 0.27, 13);
-  stripe(ctx, fx - 22, H * 0.1, fx - 52, H * 0.25, 10);
-  stripe(ctx, fx + 22, H * 0.1, fx + 52, H * 0.25, 10);
-  stripe(ctx, fx - 40, H * 0.06, fx - 86, H * 0.17, 8);
-  stripe(ctx, fx + 40, H * 0.06, fx + 86, H * 0.17, 8);
-  // brow flicks above the eyes
-  stripe(ctx, fx - 70, H * 0.36, fx - 112, H * 0.31, 6);
-  stripe(ctx, fx + 70, H * 0.36, fx + 112, H * 0.31, 6);
-  // side stripes (temples → cheeks), mirrored around the front
-  for (const side of [-1, 1]) {
-    const sx = fx + side * W * 0.16;
-    stripe(ctx, sx, H * 0.34, sx - side * 70, H * 0.42, 11);
-    stripe(ctx, sx + side * 8, H * 0.47, sx - side * 76, H * 0.53, 11);
-    stripe(ctx, sx + side * 14, H * 0.6, sx - side * 64, H * 0.63, 9);
-  }
-  // crown and back of the head
-  for (let i = 0; i < 6; i++) {
-    const bx = W * (0.5 + i * 0.09);
-    stripe(ctx, bx, H * 0.08, bx + 26, H * 0.42, 11);
-  }
+  paintStripes(painter(ctx, W, H).brush, "#000000");
   return finish(c);
 }
 
-/** Eye: sclera with a warm brown iris, pupil and two catch-lights. Iris faces u = 0.25. */
+/** Head fur: amber with a cream face mask and bold dark stripes that follow the anatomy. */
+export function headTexture() {
+  const W = 2048;
+  const H = 1024;
+  const [c, ctx] = canvas(W, H);
+  const { brush } = painter(ctx, W, H);
+  const C = MAUNG_COLORS;
+
+  // base fur: deeper on the crown and back, lighter towards the cheeks
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, C.furDeep);
+  g.addColorStop(0.45, C.fur);
+  g.addColorStop(1, C.furLight);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  const back = ctx.createLinearGradient(0, 0, W, 0); // u = 0 / 1 is the back of the head
+  back.addColorStop(0, "rgba(160,70,0,0.18)");
+  back.addColorStop(0.3, "rgba(160,70,0,0)");
+  back.addColorStop(0.7, "rgba(160,70,0,0)");
+  back.addColorStop(1, "rgba(160,70,0,0.18)");
+  ctx.fillStyle = back;
+  ctx.fillRect(0, 0, W, H);
+
+  // ---- cream face mask (one connected shape, soft edge) ----
+  const mask = document.createElement("canvas");
+  mask.width = W;
+  mask.height = H;
+  const mctx = mask.getContext("2d");
+  const m = painter(mctx, W, H);
+  const E = FEATURES.eye;
+  for (const s of [-1, 1]) {
+    m.ellipse(s * E.phi * 1.08, E.theta + 0.03, 0.25, 0.24, C.cream, s * 0.25);
+    // jowl / cheek fur
+    m.ellipse(s * 0.62, 1.98, 0.42, 0.34, C.cream, s * -0.35);
+  }
+  // muzzle & chin, joined to the eye patches
+  m.blob(
+    [
+      [-0.2, 1.55], [0, 1.68], [0.2, 1.55], [0.46, 1.6], [0.72, 1.85], [0.86, 2.2], [0.6, 2.5], [0.25, 2.7],
+      [0, 2.75], [-0.25, 2.7], [-0.6, 2.5], [-0.86, 2.2], [-0.72, 1.85], [-0.46, 1.6],
+    ],
+    C.cream
+  );
+  ctx.save();
+  ctx.filter = "blur(3px)"; // soft fur edge where supported; hard edge elsewhere
+  ctx.drawImage(mask, 0, 0);
+  ctx.restore();
+
+  // soft light on the forehead fur (painted before the stripes so they stay solid)
+  const hl = ctx.createRadialGradient(W * 0.5, H * 0.24, 10, W * 0.5, H * 0.24, H * 0.32);
+  hl.addColorStop(0, "rgba(255,226,170,0.3)");
+  hl.addColorStop(1, "rgba(255,226,170,0)");
+  ctx.fillStyle = hl;
+  ctx.fillRect(0, 0, W, H);
+
+  paintStripes(brush, C.stripe);
+  return finish(c);
+}
+
+/** Eye: large warm-brown iris, black pupil, two catch-lights. Iris faces u = 0.25 (+Z). */
 export function eyeTexture() {
   const W = 512;
   const H = 256;
   const [c, ctx] = canvas(W, H);
-  ctx.fillStyle = "#fffaf2";
+  ctx.fillStyle = "#fffaf3";
   ctx.fillRect(0, 0, W, H);
   const cx = W * 0.25;
   const cy = H * 0.5;
-  const r = H * 0.36;
-  const iris = ctx.createRadialGradient(cx, cy + r * 0.25, r * 0.1, cx, cy, r);
-  iris.addColorStop(0, "#c27a2c");
-  iris.addColorStop(0.65, "#7a4416");
-  iris.addColorStop(1, "#3b1f0b");
+  const r = H * 0.4;
+  const iris = ctx.createRadialGradient(cx, cy + r * 0.35, r * 0.1, cx, cy, r);
+  iris.addColorStop(0, "#d58a35");
+  iris.addColorStop(0.55, "#8a4816");
+  iris.addColorStop(0.92, "#3b1d09");
+  iris.addColorStop(1, "#1a0c04");
   ctx.fillStyle = iris;
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = "#140a05";
+  ctx.fillStyle = "#0d0603";
   ctx.beginPath();
-  ctx.arc(cx, cy, r * 0.46, 0, Math.PI * 2);
+  ctx.arc(cx, cy + r * 0.04, r * 0.5, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
-  ctx.arc(cx - r * 0.32, cy - r * 0.34, r * 0.24, 0, Math.PI * 2);
+  ctx.ellipse(cx - r * 0.3, cy - r * 0.32, r * 0.24, r * 0.2, -0.4, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(cx + r * 0.3, cy + r * 0.3, r * 0.11, 0, Math.PI * 2);
+  ctx.arc(cx + r * 0.32, cy + r * 0.28, r * 0.1, 0, Math.PI * 2);
   ctx.fill();
   return finish(c);
 }
@@ -198,19 +333,27 @@ export function shadowTexture() {
   return finish(c, { srgb: false });
 }
 
-/** Stage floor: a dark disc with a warm rim and faint concentric grooves. */
-export function floorTexture() {
+/** Stage floor: a disc with a warm rim and faint grooves, tinted per theme. */
+export function floorTexture(theme = "dark") {
   const S = 512;
   const [c, ctx] = canvas(S, S);
   const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
-  g.addColorStop(0, "rgba(46,62,140,0.9)");
-  g.addColorStop(0.55, "rgba(24,34,90,0.75)");
-  g.addColorStop(0.86, "rgba(16,22,64,0.35)");
-  g.addColorStop(0.93, "rgba(242,165,22,0.35)");
-  g.addColorStop(1, "rgba(16,22,64,0)");
+  if (theme === "light") {
+    g.addColorStop(0, "rgba(255,248,236,0.95)");
+    g.addColorStop(0.55, "rgba(246,226,196,0.8)");
+    g.addColorStop(0.86, "rgba(236,208,166,0.35)");
+    g.addColorStop(0.93, "rgba(242,165,22,0.45)");
+    g.addColorStop(1, "rgba(242,165,22,0)");
+  } else {
+    g.addColorStop(0, "rgba(46,62,140,0.9)");
+    g.addColorStop(0.55, "rgba(24,34,90,0.75)");
+    g.addColorStop(0.86, "rgba(16,22,64,0.35)");
+    g.addColorStop(0.93, "rgba(242,165,22,0.35)");
+    g.addColorStop(1, "rgba(16,22,64,0)");
+  }
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, S, S);
-  ctx.strokeStyle = "rgba(255,255,255,0.05)";
+  ctx.strokeStyle = theme === "light" ? "rgba(120,80,20,0.08)" : "rgba(255,255,255,0.05)";
   ctx.lineWidth = 2;
   for (let r = 40; r < S * 0.45; r += 34) {
     ctx.beginPath();

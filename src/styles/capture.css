@@ -11,8 +11,8 @@
   padding: var(--sp-6) var(--sp-4) var(--sp-5);
   border-radius: var(--r-lg);
   background:
-    radial-gradient(120% 90% at 50% 0%, #22306e 0%, var(--c-night-1) 60%, var(--c-night-0) 100%);
-  color: var(--c-on-night);
+    radial-gradient(120% 90% at 50% 0%, var(--sky-glow) 0%, var(--c-stage-1) 60%, var(--c-stage-0) 100%);
+  color: var(--c-on-stage);
   text-align: center;
 }
 
@@ -24,7 +24,7 @@
   height: 96px;
   border-radius: 50%;
   background: var(--c-amber);
-  color: var(--c-ink);
+  color: var(--c-on-amber);
   box-shadow:
     0 0 0 8px rgb(242 165 22 / 0.16),
     0 18px 40px -12px rgb(242 165 22 / 0.8);
@@ -42,7 +42,7 @@
 }
 
 .capture__mic:focus-visible {
-  outline: 3px solid #fff;
+  outline: 3px solid var(--c-stage-focus);
   outline-offset: 6px;
 }
 
@@ -61,7 +61,7 @@
 }
 
 .is-listening .capture__mic {
-  background: #ffc14d;
+  background: var(--c-amber-hover);
 }
 
 .is-listening .capture__rings span {
@@ -105,7 +105,7 @@
 .capture__transcript.is-empty {
   font-family: var(--font-ui);
   font-size: var(--fs-sm);
-  color: var(--c-on-night-mute);
+  color: var(--c-on-stage-mute);
 }
 
 .capture__voice .callout {

@@ -6,7 +6,7 @@ import { scrollToChapter } from "../../lib/scrollStory";
 export default function ChapterRail({ labels }) {
   const chapter = useSyncExternalStore(subscribeScene, () => scene.chapter, () => 0);
   return (
-    <nav className="chapter-rail on-night" aria-label="Babak cerita">
+    <nav className="chapter-rail on-stage" aria-label="Babak cerita">
       {labels.map((label, i) => (
         <button key={label} type="button" aria-current={i === chapter ? "step" : undefined} onClick={() => scrollToChapter(i)}>
           <span>{label}</span>

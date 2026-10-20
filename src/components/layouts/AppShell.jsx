@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { LogOut, Mic, MoreHorizontal, PenLine } from "lucide-react";
 import Logo from "../ui/Logo";
+import ThemeToggle from "../ui/ThemeToggle";
 import Dialog from "../ui/Dialog";
 import { NAV_ITEMS } from "./navItems";
 import { useAuth } from "../../context/AuthContext";
@@ -24,7 +25,7 @@ function Sidebar() {
   const { openCapture, openManual } = useModal();
   const logout = useLogout();
   return (
-    <aside className="sidebar on-night" aria-label="Navigasi utama">
+    <aside className="sidebar on-stage" aria-label="Navigasi utama">
       <Link to="/dashboard" className="sidebar__brand" aria-label="SI-MAUNG — Beranda">
         <Logo size={40} />
       </Link>
@@ -48,6 +49,10 @@ function Sidebar() {
       </nav>
 
       <div className="sidebar__foot">
+        <div className="sidebar__theme">
+          <span>Tema tampilan</span>
+          <ThemeToggle />
+        </div>
         <div className="sidebar__user">
           <span className="avatar" aria-hidden="true">
             {(displayName || user?.email || "?").trim()[0]?.toUpperCase()}
@@ -66,16 +71,19 @@ function Sidebar() {
   );
 }
 
-function MobileBar({ night }) {
+function MobileBar({ stage }) {
   const { displayName, user } = useAuth();
   return (
-    <header className={`mobilebar ${night ? "mobilebar--night on-night" : ""}`}>
+    <header className={`mobilebar ${stage ? "mobilebar--stage on-stage" : ""}`}>
       <Link to="/dashboard" aria-label="SI-MAUNG — Beranda">
         <Logo size={34} />
       </Link>
-      <Link to="/settings" className="avatar avatar--link" aria-label="Pengaturan akun">
-        {(displayName || user?.email || "?").trim()[0]?.toUpperCase()}
-      </Link>
+      <div className="mobilebar__actions">
+        <ThemeToggle />
+        <Link to="/settings" className="avatar avatar--link" aria-label="Pengaturan akun">
+          {(displayName || user?.email || "?").trim()[0]?.toUpperCase()}
+        </Link>
+      </div>
     </header>
   );
 }
@@ -144,14 +152,14 @@ function BottomNav() {
 /** Signed-in layout: sidebar on desktop, top bar + bottom navigation on phones/tablets. */
 export default function AppShell() {
   const { pathname } = useLocation();
-  const night = pathname.startsWith("/dashboard");
+  const stage = pathname.startsWith("/dashboard");
   return (
-    <div className={`shell ${night ? "shell--night" : ""}`}>
+    <div className={`shell ${stage ? "shell--stage" : ""}`}>
       <a href="#main" className="skip-link">
         Lewati ke konten
       </a>
       <Sidebar />
-      <MobileBar night={night} />
+      <MobileBar stage={stage} />
       <main id="main" className="shell__main" tabIndex={-1}>
         <Outlet />
       </main>

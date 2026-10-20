@@ -1,128 +1,13 @@
 /* ================= Scroll story (dashboard + landing) =================
- * A fixed backdrop (night sky + 3D MAUNG, or 2D posters) sits behind chapters
- * that scroll natively. Wide screens: text column on the left, MAUNG on the
+ * The fixed 3D layer (components/scene/SceneHost, styles/scene.css) sits
+ * behind chapters that scroll natively. Wide screens: text column on the left, MAUNG on the
  * right. Phones/tablets: MAUNG in a band at the top, the chapter panel below.
  */
 .story {
   --band: 36svh;
   position: relative;
   isolation: isolate;
-  color: var(--c-on-night);
-}
-
-.story-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.shell .story-backdrop {
-  left: 0;
-}
-
-@media (min-width: 1024px) {
-  .shell .story-backdrop {
-    left: var(--sidebar-w);
-  }
-}
-
-.story-sky {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(60% 50% at 72% 42%, rgb(242 165 22 / 0.16), transparent 70%),
-    radial-gradient(90% 70% at 15% 0%, rgb(59 92 214 / 0.35), transparent 60%),
-    linear-gradient(180deg, var(--c-night-1) 0%, var(--c-night-0) 70%, #05081a 100%);
-}
-
-.story-sky::after {
-  /* faint tiger-stripe sweep — the brand texture, very low contrast */
-  content: "";
-  position: absolute;
-  inset: -20%;
-  background-image: repeating-linear-gradient(-58deg, transparent 0 60px, rgb(255 255 255 / 0.018) 60px 90px);
-  mask-image: radial-gradient(60% 60% at 70% 40%, #000, transparent);
-}
-
-.story-canvas,
-.story-canvas canvas {
-  position: absolute !important;
-  inset: 0;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.story-canvas {
-  opacity: 0;
-  transition: opacity 900ms var(--ease-out);
-}
-
-.story-backdrop.is-live .story-canvas {
-  opacity: 1;
-}
-
-/* 2D posters: the fallback (no WebGL / reduced motion / 3D off) and the loading state */
-.story-posters {
-  position: absolute;
-  inset: 0;
-  transition: opacity 600ms var(--ease-out);
-}
-
-.story-backdrop.is-live .story-posters {
-  opacity: 0;
-}
-
-.story-posters img {
-  position: absolute;
-  left: 50%;
-  top: calc(var(--topbar-h) + 2svh);
-  height: calc(var(--band) - 4svh);
-  width: auto;
-  max-width: 80%;
-  object-fit: contain;
-  translate: -50% 8px;
-  opacity: 0;
-  filter: drop-shadow(0 24px 40px rgb(0 0 0 / 0.45));
-  transition:
-    opacity 500ms var(--ease-out),
-    translate 700ms var(--ease-out);
-}
-
-.story-posters img.is-current {
-  opacity: 1;
-  translate: -50% 0;
-}
-
-@media (min-width: 1024px) {
-  .story-posters img {
-    left: 72%;
-    top: 50%;
-    height: min(72vh, 640px);
-    max-width: 44%;
-    translate: -50% calc(-50% + 12px);
-  }
-
-  .story-posters img.is-current {
-    translate: -50% -50%;
-  }
-}
-
-.story-loading {
-  position: absolute;
-  right: var(--sp-6);
-  bottom: calc(var(--bottomnav-h) + var(--sp-4));
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  color: var(--c-on-night-mute);
-  letter-spacing: 0.04em;
-}
-
-@media (min-width: 1024px) {
-  .story-loading {
-    bottom: var(--sp-6);
-  }
+  color: var(--c-on-stage);
 }
 
 /* ---------- chapters ---------- */
@@ -197,7 +82,7 @@
   margin-top: var(--sp-4);
   max-width: 46ch;
   font-size: var(--fs-md);
-  color: var(--c-on-night-soft);
+  color: var(--c-on-stage-soft);
 }
 
 /* Paper card inside a night chapter */
@@ -233,7 +118,7 @@
 /* ---------- hero (chapter 0) ---------- */
 .hero__hello {
   font-weight: 750;
-  color: var(--c-on-night-soft);
+  color: var(--c-on-stage-soft);
 }
 
 .hero__balance-label {
@@ -243,7 +128,7 @@
   margin-top: var(--sp-6);
   font-size: var(--fs-sm);
   font-weight: 750;
-  color: var(--c-on-night-mute);
+  color: var(--c-on-stage-mute);
 }
 
 .chapter--hero .chapter__panel {
@@ -262,7 +147,7 @@
 }
 
 .hero__balance.is-negative {
-  color: #ffb3aa;
+  color: var(--c-stage-expense);
 }
 
 .hero__month {
@@ -275,10 +160,11 @@
 .stat-night {
   padding: var(--sp-3) var(--sp-4);
   border-radius: var(--r-md);
-  background: rgb(255 255 255 / 0.06);
-  border: 1px solid rgb(255 255 255 / 0.1);
+  background: var(--c-stage-glass);
+  border: 1px solid var(--c-stage-line);
   min-width: 0;
   container-type: inline-size;
+  backdrop-filter: blur(6px);
 }
 
 .stat-night__label {
@@ -287,7 +173,7 @@
   gap: 6px;
   font-size: var(--fs-xs);
   font-weight: 750;
-  color: var(--c-on-night-mute);
+  color: var(--c-on-stage-mute);
 }
 
 .stat-night__value {
@@ -300,11 +186,11 @@
 }
 
 .stat-night__value--income {
-  color: #6fe3bf;
+  color: var(--c-stage-income);
 }
 
 .stat-night__value--expense {
-  color: #ffaa9f;
+  color: var(--c-stage-expense);
 }
 
 .hero__actions {
@@ -327,7 +213,7 @@
 .hero__note {
   margin-top: var(--sp-3);
   font-size: var(--fs-xs);
-  color: var(--c-on-night-mute);
+  color: var(--c-on-stage-mute);
 }
 
 /* ---------- chapter rail (desktop) ---------- */
@@ -353,7 +239,7 @@
   justify-content: flex-end;
   gap: var(--sp-2);
   min-height: 32px;
-  color: var(--c-on-night-mute);
+  color: var(--c-on-stage-mute);
   font-size: var(--fs-xs);
   font-weight: 750;
 }
@@ -385,7 +271,7 @@
 }
 
 .chapter-rail button[aria-current="step"] {
-  color: var(--c-on-night);
+  color: var(--c-on-stage);
 }
 
 .chapter-rail button[aria-current="step"]::after {
@@ -417,7 +303,7 @@
   height: 30px;
   border-radius: 50%;
   background: var(--c-amber);
-  color: var(--c-ink);
+  color: var(--c-on-amber);
   font-weight: 800;
   font-size: var(--fs-sm);
 }
@@ -641,6 +527,7 @@
 .quick-card--amber {
   background: var(--c-amber);
   border-color: var(--c-amber);
+  color: var(--c-on-amber);
 }
 
 .quick-card--amber small {
@@ -651,5 +538,5 @@
   padding: var(--sp-8) var(--gutter) var(--sp-10);
   text-align: center;
   font-size: var(--fs-xs);
-  color: var(--c-on-night-mute);
+  color: var(--c-on-stage-mute);
 }

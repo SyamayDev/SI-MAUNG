@@ -1,11 +1,14 @@
-﻿import { lazy, Suspense } from "react";
+﻿import { lazy, Suspense, useSyncExternalStore } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute, { PublicOnlyRoute } from "./components/layouts/ProtectedRoute";
 import AppShell from "./components/layouts/AppShell";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import ScrollToTop from "./components/layouts/ScrollToTop";
+import SceneHost from "./components/scene/SceneHost";
+import LoadingScreen from "./components/scene/LoadingScreen";
 import { useAuth } from "./context/AuthContext";
 import { ModalProvider } from "./context/ModalContext";
+import { bootStore } from "./lib/bootLoader";
 
 const Landing = lazy(() => import("./pages/Landing"));
 const Login = lazy(() => import("./pages/Login"));
@@ -32,29 +35,35 @@ function Home() {
 }
 
 export default function App() {
+  const booting = useSyncExternalStore(bootStore.subscribe, () => bootStore.getState().phase !== "done", () => true);
   return (
     <BrowserRouter basename={basename}>
       <ScrollToTop />
       <ModalProvider>
-      <Suspense fallback={<LoadingSpinner />}>
-        <Routes>
-          <Route index element={<Home />} />
-          <Route path="login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
-          <Route path="register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
-          <Route path="forgot-password" element={<ForgotPassword />} />
-          <Route path="reset-password" element={<ResetPassword />} />
-          <Route path="onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-          <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="transactions" element={<Transactions />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="savings" element={<SavingsGoals />} />
-            <Route path="ai" element={<AIChatPage />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+        <SceneHost />
+        {/* The page behind the loading screen is out of reach for keyboard and screen readers. */}
+        <div className="app-root" inert={booting ? true : undefined}>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route index element={<Home />} />
+              <Route path="login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+              <Route path="register" element={<PublicOnlyRoute><Register /></PublicOnlyRoute>} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="reset-password" element={<ResetPassword />} />
+              <Route path="onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+              <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="transactions" element={<Transactions />} />
+                <Route path="analytics" element={<Analytics />} />
+                <Route path="savings" element={<SavingsGoals />} />
+                <Route path="ai" element={<AIChatPage />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </div>
+        <LoadingScreen />
       </ModalProvider>
     </BrowserRouter>
   );

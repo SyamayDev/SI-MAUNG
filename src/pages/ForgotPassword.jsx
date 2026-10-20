@@ -36,6 +36,7 @@ export default function ForgotPassword() {
       title="Lupa kata sandi"
       subtitle="Kami kirim tautan untuk membuat kata sandi baru."
       art="images/empty-state-mascot.webp"
+      pose="thinking"
       footer={
         <Link to="/login" className="link-btn">
           Kembali ke halaman masuk

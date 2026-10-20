@@ -10,6 +10,8 @@ import "./styles/layout.css";
 import "./styles/capture.css";
 import "./styles/story.css";
 import "./styles/pages.css";
+import "./styles/scene.css";
+import "./lib/theme.js"; // keeps <html data-theme> and the 3D scene in sync
 import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { FinanceProvider } from "./context/FinanceContext.jsx";

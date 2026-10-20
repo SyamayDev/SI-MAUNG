@@ -45,7 +45,7 @@ export default function Register() {
 
   if (sentTo) {
     return (
-      <AuthLayout title="Cek email Anda" art="images/onboarding-finish.webp">
+      <AuthLayout title="Cek email Anda" art="images/onboarding-finish.webp" pose="cheer">
         <div className="stack">
           <p className="callout callout--success">
             <MailCheck size={18} aria-hidden="true" />
@@ -66,6 +66,7 @@ export default function Register() {
       title="Buat akun"
       subtitle="Gratis. Mulai catat dalam satu menit."
       art="images/register-mascot.webp"
+      pose="point"
       footer={
         <>
           Sudah punya akun?{" "}

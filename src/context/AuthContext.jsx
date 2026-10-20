@@ -30,11 +30,21 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!supabase) return undefined;
     let alive = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!alive) return;
-      setSession(data.session ?? null);
-      setStatus(data.session ? "signedIn" : "signedOut");
-    });
+    // An expired session is refreshed over the network; if the auth server is
+    // slow or unreachable, don't keep the app waiting — continue signed out
+    // and let a later auth event (if the server answers) sign the user in.
+    const giveUp = setTimeout(() => {
+      if (alive) setStatus((s) => (s === "loading" ? "signedOut" : s));
+    }, 8000);
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!alive) return;
+        setSession(data.session ?? null);
+        setStatus(data.session ? "signedIn" : "signedOut");
+      })
+      .catch(() => alive && setStatus("signedOut"))
+      .finally(() => clearTimeout(giveUp));
     // Keep this callback synchronous: awaiting Supabase calls inside it can deadlock the auth lock.
     const { data } = supabase.auth.onAuthStateChange((event, next) => {
       if (!alive) return;
@@ -45,6 +55,7 @@ export function AuthProvider({ children }) {
     });
     return () => {
       alive = false;
+      clearTimeout(giveUp);
       data.subscription.unsubscribe();
     };
   }, []);

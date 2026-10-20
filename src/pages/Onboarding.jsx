@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AlertCircle, ArrowLeft, Check, Mic, PiggyBank, ShieldCheck, Target } from "lucide-react";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Logo from "../components/ui/Logo";
+import ThemeToggle from "../components/ui/ThemeToggle";
+import { useMaung3D } from "../components/scene/sceneHooks";
+import { useMaungFrame } from "../components/scene/useMaungFrame";
 import { useAuth } from "../context/AuthContext";
 import { asset } from "../lib/assets";
 
@@ -12,11 +15,12 @@ const GOALS = [
   { id: "track_finances", label: "Sekadar mencatat keuangan", icon: Target },
 ];
 
+// MAUNG's 3D pose per step; the 2D art is only used when 3D is unavailable.
 const STEPS = [
-  { art: "images/onboarding-welcome.webp" },
-  { art: "images/onboarding-name.webp" },
-  { art: "images/onboarding-goals.webp" },
-  { art: "images/onboarding-finish.webp" },
+  { art: "images/onboarding-welcome.webp", pose: "wave" },
+  { art: "images/onboarding-name.webp", pose: "listen" },
+  { art: "images/onboarding-goals.webp", pose: "point" },
+  { art: "images/onboarding-finish.webp", pose: "cheer" },
 ];
 
 export default function Onboarding() {
@@ -26,6 +30,9 @@ export default function Onboarding() {
   const [goal, setGoal] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const frameRef = useRef(null);
+  useMaungFrame(frameRef, STEPS[step].pose);
+  const { available } = useMaung3D();
 
   const finish = async () => {
     if (busy) return;
@@ -38,19 +45,29 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="onboarding on-night">
+    <div className="onboarding on-stage">
       <header className="onboarding__bar">
         <Logo size={36} />
-        <p className="eyebrow" aria-live="polite">
-          Langkah {step + 1} dari {STEPS.length}
-        </p>
+        <div className="onboarding__bar-end">
+          <p className="eyebrow onboarding__count" aria-live="polite">
+            <span className="onboarding__count-long">
+              Langkah {step + 1} dari {STEPS.length}
+            </span>
+            <span className="onboarding__count-short" aria-hidden="true">
+              {step + 1}/{STEPS.length}
+            </span>
+          </p>
+          <ThemeToggle />
+        </div>
       </header>
       <div className="onboarding__progress" aria-hidden="true">
         <span style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
       </div>
 
       <main className="onboarding__body">
-        <img className="onboarding__art" src={asset(STEPS[step].art)} alt="" width="320" height="420" key={step} />
+        <div className="onboarding__art" ref={frameRef} data-maung-frame>
+          {!available && <img src={asset(STEPS[step].art)} alt="" width="320" height="420" key={step} />}
+        </div>
         <div className="onboarding__card panel">
           {step === 0 && (
             <>

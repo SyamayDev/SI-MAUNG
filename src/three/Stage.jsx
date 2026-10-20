@@ -1,11 +1,16 @@
 /**
- * Host for the MAUNG world — a small vanilla three.js renderer (the world is
- * imperative, so a full React renderer would only add weight and defeat
- * three.js tree-shaking). Lazy-loaded by StoryBackdrop.
- *  • the loop runs only while the story is on screen and the tab is visible
+ * Persistent host for the MAUNG world — a small vanilla three.js renderer
+ * (the world is imperative, so a React renderer would only add weight and
+ * defeat tree-shaking). Mounted once by SceneHost and kept for the whole
+ * visit, so navigating back to a 3D page never rebuilds the model or
+ * recompiles shaders.
+ *
+ * Set-up is split into real steps reported to the loading screen
+ * (lib/bootLoader.js): build model → bake lighting → compile shaders →
+ * first frame. Each runs in its own task so the page stays responsive.
+ *  • the loop runs only while a 3D page is visible and the tab is active
  *  • device-pixel-ratio capped per device tier and lowered when frames get slow
- *  • procedural studio reflections (RoomEnvironment → PMREM), no HDR download
- *  • any failure (WebGL error, lost context) flips the page to the 2D posters
+ *  • any failure (WebGL error, lost context) switches the page to its 2D fallback
  *  • geometry, materials, textures, render targets and the GL context are
  *    released on unmount
  */
@@ -15,21 +20,31 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { buildWorld } from "./world/buildWorld.js";
 import { scene as store, setScene, subscribeScene } from "../lib/sceneStore.js";
 import { deviceTier } from "../lib/device.js";
+import { stepActive, stepDone, stepFail } from "../lib/bootLoader.js";
+
+const nextTask = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 export default function Stage() {
   const hostRef = useRef(null);
 
   useEffect(() => {
     const host = hostRef.current;
+    let disposed = false;
     const tier = deviceTier();
     const maxDpr = tier === "high" ? 1.75 : tier === "mid" ? 1.5 : 1;
     let dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+    let step = "model";
+
+    const fail = (message) => {
+      stepFail(step, message);
+      setScene({ failed: true, ready: false });
+    };
 
     let renderer;
     try {
       renderer = new WebGLRenderer({ antialias: tier !== "low", alpha: true, stencil: false, powerPreference: "high-performance" });
     } catch {
-      setScene({ failed: true });
+      fail("WebGL tidak dapat dijalankan di perangkat ini.");
       return undefined;
     }
     renderer.outputColorSpace = SRGBColorSpace;
@@ -47,21 +62,7 @@ export default function Stage() {
     const size = { width: 1, height: 1 };
     const timer = new Timer();
     const clock = { elapsedTime: 0 };
-    const state = { camera, size, clock };
-
-    let world;
-    let envRT;
-    const pmrem = new PMREMGenerator(renderer);
-    const room = new RoomEnvironment();
-    try {
-      world = buildWorld({ tier });
-      envRT = pmrem.fromScene(room, 0.04);
-      scene.environment = envRT.texture;
-      scene.environmentIntensity = 0.45;
-      scene.add(world.root);
-    } catch {
-      setScene({ failed: true });
-    }
+    const state = { camera, size, clock, scene };
 
     const resize = () => {
       const w = Math.max(1, host.clientWidth);
@@ -76,6 +77,11 @@ export default function Stage() {
     const ro = new ResizeObserver(resize);
     ro.observe(host);
 
+    let world = null;
+    let envRT = null;
+    const pmrem = new PMREMGenerator(renderer);
+    const room = new RoomEnvironment();
+
     // Frame budget: drop the pixel ratio a step if the average frame stays slower than ~30 fps.
     let budgetTime = 0;
     let budgetFrames = 0;
@@ -86,12 +92,14 @@ export default function Stage() {
       const delta = resumed ? 1 / 60 : timer.getDelta(); // a paused stretch is not one huge frame
       resumed = false;
       clock.elapsedTime = timer.getElapsed();
-      if (!world) return;
       world.update(state, delta);
       renderer.render(scene, camera);
       if (first) {
         first = false;
-        requestAnimationFrame(() => setScene({ ready: true }));
+        requestAnimationFrame(() => {
+          stepDone("ready");
+          setScene({ ready: true });
+        });
       }
       budgetTime += delta;
       budgetFrames += 1;
@@ -108,7 +116,8 @@ export default function Stage() {
 
     let running = false;
     const sync = () => {
-      const want = store.inView && !store.failed && !document.hidden;
+      const visible = store.mode !== "off" && (store.mode !== "story" || store.inView);
+      const want = Boolean(world) && visible && !store.failed && !document.hidden;
       if (want === running) return;
       running = want;
       if (want) resumed = true;
@@ -116,7 +125,6 @@ export default function Stage() {
     };
     const unsubscribe = subscribeScene(sync);
     document.addEventListener("visibilitychange", sync);
-    sync();
 
     const onLost = (e) => {
       e.preventDefault();
@@ -124,7 +132,41 @@ export default function Stage() {
     };
     canvas.addEventListener("webglcontextlost", onLost);
 
+    (async () => {
+      try {
+        stepActive("model");
+        await nextTask();
+        if (disposed) return;
+        world = buildWorld({ tier });
+        stepDone("model");
+
+        step = "scene";
+        stepActive("scene");
+        await nextTask();
+        if (disposed) return;
+        envRT = pmrem.fromScene(room, 0.04);
+        scene.environment = envRT.texture;
+        scene.environmentIntensity = 0.45;
+        scene.add(world.root);
+        stepDone("scene");
+
+        step = "shader";
+        stepActive("shader");
+        world.update(state, 0); // place camera, coins and MAUNG before compiling
+        await renderer.compileAsync(scene, camera);
+        if (disposed) return;
+        stepDone("shader");
+
+        step = "ready";
+        stepActive("ready");
+        sync();
+      } catch {
+        if (!disposed) fail("Scene 3D gagal disiapkan di perangkat ini.");
+      }
+    })();
+
     return () => {
+      disposed = true;
       renderer.setAnimationLoop(null);
       unsubscribe();
       document.removeEventListener("visibilitychange", sync);
@@ -145,5 +187,5 @@ export default function Stage() {
     };
   }, []);
 
-  return <div ref={hostRef} style={{ position: "absolute", inset: 0 }} />;
+  return <div ref={hostRef} className="scene-host__canvas" />;
 }

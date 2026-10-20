@@ -100,7 +100,7 @@ export default function ResetPassword() {
   }
 
   return (
-    <AuthLayout title="Atur ulang kata sandi" subtitle="Buat kata sandi baru untuk akunmu." art="images/onboarding-finish.webp">
+    <AuthLayout title="Atur ulang kata sandi" subtitle="Buat kata sandi baru untuk akunmu." art="images/onboarding-finish.webp" pose={done ? "cheer" : "wave"}>
       {body}
     </AuthLayout>
   );
