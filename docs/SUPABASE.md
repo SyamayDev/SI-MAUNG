@@ -2,8 +2,12 @@
 
 ## Status
 
-- Project yang dirujuk `.env.local` **tidak bisa diakses** saat pengerjaan (host tidak ditemukan di DNS; akun Supabase CLI yang login tidak memiliki project tersebut). Skema live **belum** diinspeksi dan migration **belum** diterapkan.
-- Migration dan uji RLS sudah dijalankan di Postgres lokal (`supabase/postgres:17.6.1.166`) pada dua skenario: tabel lama berisi baris, dan database kosong.
+- Project lama (`dupytnvnqnnwjfoxpxeq`) sudah tidak ada (host tidak ditemukan di DNS) — itu sebab daftar/masuk gagal dengan "Tidak dapat terhubung ke server".
+- **20 Okt 2026, atas persetujuan pemilik:** aplikasi dipindah ke project `supabase-bistre-basket` (ref `lwosixuonptxrifepjff`, dibuat lewat integrasi Vercel, saat itu kosong: 0 tabel, 0 pengguna).
+  - `supabase/migrations/20261020000000_simaung_core.sql` diterapkan (`supabase db query --linked --project-ref … -f …`). Terverifikasi: `profiles`, `transactions`, `savings_goals` dengan RLS aktif (3 + 4 + 4 policy) dan trigger `simaung_on_auth_user_created`.
+  - `supabase/tests/rls_check.sql` dijalankan di project itu (dua pengguna sintetis, seluruhnya di-*rollback*): semua cek lolos; jumlah baris kembali 0.
+  - Koneksi dari aplikasi build diuji: masuk dengan akun sintetis yang tidak ada → server menjawab "Email atau kata sandi salah" (tidak ada akun dibuat, tidak ada email terkirim).
+- Migration dan uji RLS juga sudah dijalankan di Postgres lokal (`supabase/postgres:17.6.1.166`) pada dua skenario: tabel lama berisi baris, dan database kosong.
 
 ## Model data yang dipakai aplikasi
 
@@ -59,7 +63,9 @@ Yang diperiksa: profil dibuat trigger · A hanya melihat datanya · A tidak bisa
   - Site URL: `https://syamaydev.github.io/SI-MAUNG/`
   - Redirect URLs: `https://syamaydev.github.io/SI-MAUNG/**`, `http://localhost:5173/**`, `http://localhost:4173/SI-MAUNG/**`
 - Halaman `/reset-password` menunggu sesi pemulihan dari tautan email (event `PASSWORD_RECOVERY`) lalu memanggil `updateUser({ password })`; tautan kedaluwarsa/invalid dijelaskan ke pengguna.
-- Bila konfirmasi email aktif, pendaftaran menampilkan “cek email” (tidak ada sesi sampai dikonfirmasi).
+- Bila konfirmasi email aktif, pendaftaran menampilkan “cek email” (tidak ada sesi sampai dikonfirmasi). Di project ini konfirmasi email **aktif**.
+- Layanan email bawaan Supabase hanya mengirim ke alamat anggota tim project dan dibatasi beberapa email per jam. Agar orang lain bisa mendaftar, pasang SMTP sendiri (Authentication → Emails → SMTP Settings) atau matikan *Confirm email* (Authentication → Sign In / Providers → Email).
+- Site URL & Redirect URLs project baru **belum** saya atur (tidak tersedia lewat CLI tanpa mengubah seluruh konfigurasi); atur manual seperti di atas, kalau tidak tautan konfirmasi mengarah ke Site URL bawaan.
 
 ## Edge Function `parse-transaction` (opsional)
 

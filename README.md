@@ -17,7 +17,7 @@ Aplikasi pencatat keuangan pribadi berbahasa Indonesia dengan **pencatatan suara
 | **Asisten** | Mencatat dari kalimat dan menjawab pertanyaan ringkas tentang catatanmu (“berapa pengeluaran bulan ini?”) — dihitung dari data, tanpa model AI. Jujur bila tidak mengerti. |
 | **Akun** | Daftar (dengan/ tanpa konfirmasi email), masuk, lupa & atur ulang kata sandi, onboarding, ubah nama & kata sandi. |
 | **Pengaturan** | Hanya kontrol yang berfungsi: nama tampilan, kata sandi, tema warna, simpan-otomatis suara (bawaan mati), scene 3D otomatis/mati. |
-| **Tema terang / gelap** | Terang, gelap, atau ikuti sistem. Tombol tema ada di landing, halaman masuk/daftar, onboarding, sidebar & top bar aplikasi, serta Pengaturan. Pilihan disimpan di perangkat dan diterapkan sebelum paint pertama (tanpa kedip). |
+| **Tema terang / gelap** | Awalnya mengikuti tema perangkat. Satu tombol (bulan = gelap, matahari = terang) di landing, halaman masuk/daftar, onboarding, sidebar & top bar aplikasi menukar tema; Pengaturan punya Terang/Gelap dan *Ikuti perangkat lagi*. Pilihan disimpan di perangkat dan diterapkan sebelum paint pertama (tanpa kedip). |
 
 ## Stack
 
@@ -85,7 +85,7 @@ MAUNG dibangun **prosedural** di kode (tanpa file model/GLB), mengikuti maskot `
 
 ## Responsif
 
-Mobile-first: di bawah 1024 px sidebar menjadi top bar + bottom navigation dengan tombol mikrofon di tengah; dialog menjadi bottom sheet dengan scroll internal dan safe-area iOS, dan baris tombol simpan/batal pada formulir panjang tetap terlihat di bawah; scene 3D dibingkai ulang ke pita di atas teks tiap babak. Diperiksa tanpa horizontal overflow pada 320, 360, 390, 430, 768, 1024, 1280, 1440 px (lihat *Status verifikasi*).
+Mobile-first: di bawah 1024 px sidebar menjadi top bar + bottom navigation dengan tombol mikrofon di tengah; dialog menjadi bottom sheet dengan scroll internal dan safe-area iOS, dan baris tombol simpan/batal pada formulir panjang tetap terlihat di bawah; di halaman cerita MAUNG berdiri di panggung tetap di bawah top bar dan babak-babak bergulir di bawahnya, sehingga teks tidak pernah menutupinya. Diperiksa tanpa horizontal overflow pada 320, 360, 390, 430, 768, 1024, 1280, 1440 px (lihat *Status verifikasi*).
 
 ## Deployment (GitHub Pages)
 
@@ -130,7 +130,7 @@ Benar-benar dijalankan:
 
 Belum diverifikasi:
 - **Situs live** `https://syamaydev.github.io/SI-MAUNG/` masih menyajikan source branch `main` sampai sumber Pages diubah ke `gh-pages` (lihat *Deployment*).
-- Project Supabase di `.env.local` tidak dapat diakses (DNS host tidak ditemukan; akun Supabase CLI yang login tidak memiliki project itu). Login/daftar di build live akan gagal dengan pesan jaringan sampai URL/key project yang aktif dipakai saat build. Migration **belum** diterapkan ke database live; skema live belum diinspeksi.
+- Supabase: project lama sudah tidak ada; aplikasi kini memakai project `supabase-bistre-basket` (migration + uji RLS sudah dijalankan di sana, lihat [docs/SUPABASE.md](docs/SUPABASE.md)). Pendaftaran akun sungguhan belum saya coba (agar tidak membuat akun/email palsu); Site URL & Redirect URLs project baru masih harus diatur di dashboard; email konfirmasi bawaan Supabase hanya terkirim ke anggota tim project.
 - Edge Function `parse-transaction` belum di-deploy/diuji (butuh akses project & secret).
 - Pengenalan suara nyata di perangkat fisik (headless tidak punya mikrofon); alur teks dengan parser yang sama sudah diuji.
 - Safari/iOS dan Firefox belum diuji langsung (hanya Chrome).
