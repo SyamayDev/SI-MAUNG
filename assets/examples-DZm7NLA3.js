@@ -1,0 +1,1 @@
+var e=[`Tadi beli nasi goreng dua puluh lima ribu`,`Bayar listrik 125 ribu`,`Gajian tiga juta hari ini`,`Kemarin beli buku 45 ribu`];export{e as t};
