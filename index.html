@@ -3,11 +3,56 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>SI-MAUNG — Catat uangmu dengan suara</title>
-    <meta name="description" content="SI-MAUNG: Sistem Informasi Manajemen Keuangan pribadi. Catat pemasukan dan pengeluaran cukup dengan satu kalimat, lihat pola, dan capai tujuan tabungan bersama MAUNG." />
+    <title>SI-MAUNG: Catat Keuangan Cukup dengan Suara</title>
+    <meta name="description" content="Aplikasi pencatat keuangan pribadi. Bilang “beli bensin 50 ribu”, MAUNG mengisi nominal, kategori, dan tanggalnya. Lihat ke mana uangmu pergi dan pantau target tabungan. Gratis." />
     <meta name="theme-color" content="#f9efdd" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="application-name" content="SI-MAUNG" />
+    <meta name="apple-mobile-web-app-title" content="SI-MAUNG" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="canonical" href="https://syamaydev.github.io/SI-MAUNG/" />
     <link rel="icon" type="image/svg+xml" href="/SI-MAUNG/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/SI-MAUNG/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/SI-MAUNG/apple-touch-icon.png" />
+    <link rel="manifest" href="/SI-MAUNG/manifest.webmanifest" />
+
+    <!-- Link previews (WhatsApp, Telegram, Facebook, X, LinkedIn, Discord) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="SI-MAUNG" />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:url" content="https://syamaydev.github.io/SI-MAUNG/" />
+    <meta property="og:title" content="SI-MAUNG: Catat Keuangan Cukup dengan Suara" />
+    <meta property="og:description" content="Bilang “beli bensin 50 ribu”, MAUNG mengisi nominal, kategori, dan tanggalnya. Pencatat keuangan pribadi yang gratis, bisa pakai suara atau ketik." />
+    <meta property="og:image" content="https://syamaydev.github.io/SI-MAUNG/og-image.jpg" />
+    <meta property="og:image:secure_url" content="https://syamaydev.github.io/SI-MAUNG/og-image.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="MAUNG, maskot harimau berjas, di samping tulisan “Catat uang, cukup ngomong.”" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SI-MAUNG: Catat Keuangan Cukup dengan Suara" />
+    <meta name="twitter:description" content="Bilang “beli bensin 50 ribu”, MAUNG mengisi nominal, kategori, dan tanggalnya. Gratis." />
+    <meta name="twitter:image" content="https://syamaydev.github.io/SI-MAUNG/og-image.jpg" />
+    <meta name="twitter:image:alt" content="MAUNG, maskot harimau berjas, di samping tulisan “Catat uang, cukup ngomong.”" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "SI-MAUNG",
+        "alternateName": "Sistem Informasi Manajemen Keuangan",
+        "url": "https://syamaydev.github.io/SI-MAUNG/",
+        "image": "https://syamaydev.github.io/SI-MAUNG/og-image.jpg",
+        "description": "Aplikasi pencatat keuangan pribadi berbahasa Indonesia. Catat pemasukan dan pengeluaran dengan satu kalimat lewat suara atau ketik, lihat analitik, dan pantau target tabungan.",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web",
+        "inLanguage": "id",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "IDR" }
+      }
+    </script>
     <script>
       // Apply the colour theme before the first paint (no flash): the saved choice, else the device theme.
       (function () {
@@ -37,17 +82,15 @@
       @keyframes bs-sweep { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
       @media (prefers-reduced-motion: reduce) { #boot-static .bs-bar::after { animation: none; width: 100%; opacity: 0.35; } }
     </style>
-    <script type="module" crossorigin src="/SI-MAUNG/assets/index-D1WRP6L7.js"></script>
-    <link rel="modulepreload" crossorigin href="/SI-MAUNG/assets/jsx-runtime-KJkY8l8U.js">
-    <link rel="modulepreload" crossorigin href="/SI-MAUNG/assets/react-dom-BsrxZfdi.js">
+    <script type="module" crossorigin src="/SI-MAUNG/assets/index-DKGsZFWQ.js"></script>
+    <link rel="modulepreload" crossorigin href="/SI-MAUNG/assets/jsx-runtime-DUAcabCT.js">
+    <link rel="modulepreload" crossorigin href="/SI-MAUNG/assets/icons-BRpiXAyG.js">
+    <link rel="modulepreload" crossorigin href="/SI-MAUNG/assets/react-dom-D9MW0TUJ.js">
     <link rel="modulepreload" crossorigin href="/SI-MAUNG/assets/sceneStore-CcKFRnpI.js">
     <link rel="modulepreload" crossorigin href="/SI-MAUNG/assets/preload-helper-B55Episz.js">
-    <link rel="modulepreload" crossorigin href="/SI-MAUNG/assets/createLucideIcon-Dyn30oEl.js">
-    <link rel="modulepreload" crossorigin href="/SI-MAUNG/assets/circle-check-CX6HyeV1.js">
-    <link rel="modulepreload" crossorigin href="/SI-MAUNG/assets/Button-CKOeeucV.js">
-    <link rel="modulepreload" crossorigin href="/SI-MAUNG/assets/preferences-ihzgFKhd.js">
-    <link rel="stylesheet" crossorigin href="/SI-MAUNG/assets/index-nTlKLRa6.css">
-    <meta name="simaung:3d" content="assets/Stage-6nMcTUJj.js|624351">
+    <link rel="modulepreload" crossorigin href="/SI-MAUNG/assets/Button-DJ5tKBMh.js">
+    <link rel="preload" as="style" crossorigin href="/SI-MAUNG/assets/index-k3bXxEby.css" data-app-css onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet" crossorigin href="/SI-MAUNG/assets/index-k3bXxEby.css"></noscript>
+    <meta name="simaung:3d" content="assets/Stage-BFvsvwrb.js|621077">
   </head>
   <body>
     <noscript>SI-MAUNG membutuhkan JavaScript untuk berjalan.</noscript>

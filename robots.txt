@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /SI-MAUNG/dashboard
+Disallow: /SI-MAUNG/transactions
+Disallow: /SI-MAUNG/settings
+
+Sitemap: https://syamaydev.github.io/SI-MAUNG/sitemap.xml
