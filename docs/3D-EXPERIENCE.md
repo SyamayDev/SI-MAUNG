@@ -62,7 +62,7 @@ Urutan tampilan pertama:
 | Menyiapkan pengalaman SI-MAUNG | sesi auth selesai dicek (maks. 8 dtk; Supabase lambat/mati → lanjut sebagai tamu) | selesai/belum |
 | Memuat mesin 3D (three.js) | `src/lib/load3d.js` mengunduh chunk `Stage` yang tercantum di meta `simaung:3d` (disuntikkan saat build oleh `vite.config.js`) dengan pembaca streaming → **byte nyata** "x / y MB"; lalu `import()` dari cache | byte |
 | Membangun model & material MAUNG | `buildWorld()` di `Stage.jsx` | selesai/belum |
-| Menyiapkan pencahayaan & scene 3D | PMREM `RoomEnvironment` | selesai/belum |
+| Menyiapkan pencahayaan & scene 3D | dunia & lampu ditambahkan ke scene | selesai/belum |
 | Mengompilasi shader | `renderer.compileAsync()` | selesai/belum |
 | Siap digunakan | frame pertama benar-benar dirender | selesai/belum |
 
@@ -112,7 +112,7 @@ Kamera dibingkai otomatis: tiap babak mendefinisikan target, ukuran kotak yang h
 
 ## Performa, reduced motion & fallback
 
-- Host three.js vanilla (`src/three/Stage.jsx`), chunk terpisah ±162 KB gzip. Loop `setAnimationLoop` hanya berjalan bila mode bukan `off`, cerita terlihat (mode story), dan tab aktif. DPR maks 1.75/1.5/1 per tier perangkat, turun 0.25 bila rata-rata frame > 33 ms. Tanpa shadow map (bayangan kontak dari tekstur), lingkungan studio `RoomEnvironment` → PMREM (tanpa HDR eksternal), tone mapping Neutral.
+- Host three.js vanilla (`src/three/Stage.jsx`), chunk terpisah ±162 KB gzip. Loop `setAnimationLoop` hanya berjalan bila mode bukan `off`, cerita terlihat (mode story), dan tab aktif. DPR maks 1.75/1.5/1 per tier perangkat, turun 0.25 bila rata-rata frame > 33 ms. Tanpa shadow map (bayangan kontak dari tekstur), tanpa environment map (PMREM dulu memblokir main thread ±0,9 dtk saat driver mengompilasi shadernya; kini lampu langit/tanah + lampu depan memberi tampilan lembut yang sama), tone mapping Neutral. Satu konteks WebGL saja (konteks dari pemeriksaan WebGL2 di `lib/device.js` diserahkan ke renderer), loop render baru jalan setelah `compileAsync` selesai, dan setup dimulai saat browser idle sehingga render pertama halaman tidak menunggu GPU. Ukuran tiap langkah tercatat sebagai User Timing `simaung:*` di DevTools.
 - **`prefers-reduced-motion: reduce`**: MAUNG 3D tetap tampil tetapi **diam** — waktu animasi dibekukan, tanpa napas/kedip/ekor/lambaian, kamera langsung ke posisi tanpa transisi, dan koin tidak bergerak. Diuji: dua tangkapan berjarak 1,2 dtk identik piksel-per-piksel; saat preferensi dimatikan, frame kembali bergerak.
 - Fallback 2D (poster maskot per babak / ilustrasi di halaman auth) **hanya** bila 3D tidak mungkin: tanpa WebGL, renderer software, error/`webglcontextlost`, gagal unduh, atau Pengaturan → Scene 3D → Mati. `?3d=on` / `?3d=off` untuk pengujian.
 - Pembersihan saat unmount: semua geometri, material, tekstur, render target, renderer (+`forceContextLoss`) dan listener/observer. Diuji: 6 kali bolak-balik rute tetap 1 canvas.

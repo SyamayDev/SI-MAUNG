@@ -25,6 +25,8 @@ React 19 · Vite 8 · React Router 7 · Supabase (Auth + Postgres + RLS, opsiona
 
 ## Menjalankan
 
+**Panduan langkah demi langkah (Supabase, lokal, Vercel, GitHub Pages, pratinjau link): [docs/SETUP.md](docs/SETUP.md).**
+
 Prasyarat: Node.js 20+ (diuji dengan Node 22) dan npm.
 
 ```bash
@@ -36,11 +38,12 @@ npm run dev                   # http://localhost:5173
 | Perintah | Fungsi |
 | --- | --- |
 | `npm run dev` | Server pengembangan (base `/`). |
-| `npm run build` | Build produksi ke `dist/` dengan base `/SI-MAUNG/` + `404.html` (fallback SPA GitHub Pages). |
+| `npm run build` | Build produksi ke `dist/` (base `/` di Vercel, `/SI-MAUNG/` di tempat lain) + `404.html`, `robots.txt`, `sitemap.xml`. |
+| `npm run build:ghpages` | Build khusus GitHub Pages (mode `ghpages`: base `/SI-MAUNG/` selalu, apa pun isi `.env.local`). |
 | `npm run preview` | Menyajikan build di `http://localhost:4173/SI-MAUNG/`. |
 | `npm run lint` | ESLint. |
 | `npm test` | Unit test (Node test runner) untuk parser nominal/tanggal/kategori, validasi, ringkasan, wawasan, dan jawaban asisten. |
-| `npm run deploy` | Build lalu publikasikan `dist/` ke branch `gh-pages` di `origin` (lihat *Deployment*). |
+| `npm run deploy` | `build:ghpages` lalu publikasikan `dist/` ke branch `gh-pages` di `origin` (lihat *Deployment*). |
 
 ### Variabel lingkungan
 
@@ -55,7 +58,7 @@ npm run dev                   # http://localhost:5173
 
 ## Supabase
 
-Skema, migration, RLS, uji keamanan, dan Edge Function dijelaskan di **[docs/SUPABASE.md](docs/SUPABASE.md)**. Ringkasnya:
+Untuk project baru: jalankan **[`supabase/setup.sql`](supabase/setup.sql)** di SQL Editor (satu file, aman diulang, menampilkan hasil cek di akhir). Skema, migration, RLS, uji keamanan, dan Edge Function dijelaskan di **[docs/SUPABASE.md](docs/SUPABASE.md)**. Ringkasnya:
 
 - `supabase/migrations/20261020000000_simaung_core.sql` — idempoten dan non-destruktif: tabel `profiles`, `transactions`, `savings_goals`, kolom opsional (`notes`, `source`), aturan data `NOT VALID` (hanya baris baru), indeks, trigger profil untuk pengguna baru, RLS + policy `simaung_*` berbasis `auth.uid()`.
 - `supabase/tests/rls_check.sql` — uji RLS dengan dua pengguna sintetis (di-*rollback*).
@@ -125,6 +128,21 @@ src/
 tools/              maung-preview (pratinjau model, khusus pengembangan)
 supabase/           migrations, tests, scripts, functions
 ```
+
+## SEO, pratinjau link, PWA & performa
+
+- `<head>`: judul & deskripsi, canonical, Open Graph + Twitter card dengan gambar `public/og-image.jpg` (1200×630, render MAUNG 3D asli), JSON-LD `WebApplication`. Alamat absolut diisi saat build (plugin `siteMeta` di `vite.config.js`). Judul tab, `robots` (halaman privat `noindex`) dan canonical diperbarui per rute (`components/layouts/RouteMeta.jsx`). `robots.txt` & `sitemap.xml` dibuat saat build.
+- PWA: `public/manifest.webmanifest` + ikon 192/512 (maskable) & apple-touch-icon — bisa dipasang ke layar utama dan terbuka tanpa bilah alamat. Tombol layar penuh (`components/ui/FullscreenToggle.jsx`, Fullscreen API) muncul bila browser mendukung.
+- Lighthouse 13.5 (21 Okt 2026, build produksi lokal):
+
+  | Halaman | Profil | Performance | Accessibility | Best Practices | SEO |
+  | --- | --- | --- | --- | --- | --- |
+  | `/` | Desktop | 99 | 100 | 100 | 100 |
+  | `/login` | Desktop | 99 | 100 | 100 | 100 |
+  | `/` | Mobile (simulasi 4G lambat, CPU 4×) | 64–77 | 100 | 100 | 100 |
+  | `/login` | Mobile | 78 | 100 | 100 | 100 |
+
+  Pembanding dengan pengaturan sama: si-raju.vercel.app mobile = 74 / 100 / 100 / 100. Sisa beban di mobile adalah inisialisasi WebGL (konteks GPU + shader) dan three.js 161 KB gzip; perbaikan yang sudah dilakukan: tanpa environment map PMREM (−0,9 dtk main thread), satu konteks WebGL (bukan dua), loop render menunggu kompilasi shader asinkron, setup 3D saat browser idle, CSS tidak memblokir render, ikon digabung satu chunk, unduhan three.js prioritas rendah. Langkah berikutnya bila ingin skor mobile lebih tinggi: prerender HTML landing (seperti SI-RAJU).
 
 ## Status verifikasi (20 Okt 2026)
 

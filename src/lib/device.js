@@ -16,23 +16,47 @@ export function deviceTier() {
   return "high";
 }
 
+/** Context attributes the 3D stage renders with (the probe below must match them). */
+export const glAttributes = () => ({
+  alpha: true,
+  antialias: deviceTier() !== "low",
+  depth: true,
+  stencil: false,
+  premultipliedAlpha: true,
+  preserveDrawingBuffer: false,
+  powerPreference: "default",
+});
+
 let probe;
+/**
+ * WebGL2 check (three.js needs WebGL2). Creating a context is the single most
+ * expensive start-up step (hundreds of ms on some drivers), so the probe's
+ * context is kept and handed to the 3D stage instead of making a second one.
+ */
 function probeWebGL() {
   if (probe) return probe;
-  probe = { webgl: false, software: false };
+  probe = { webgl: false, software: false, handoff: null };
   try {
     const canvas = document.createElement("canvas");
-    const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
+    const gl = canvas.getContext("webgl2", glAttributes());
     if (gl) {
       const info = gl.getExtension("WEBGL_debug_renderer_info");
       const renderer = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || "");
-      probe = { webgl: true, software: /swiftshader|llvmpipe|softpipe|software|basic render/i.test(renderer) };
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      const software = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(renderer);
+      probe = { webgl: true, software, handoff: software ? null : { canvas, gl } };
+      if (software) gl.getExtension("WEBGL_lose_context")?.loseContext();
     }
   } catch {
-    /* no WebGL */
+    /* no WebGL2 */
   }
   return probe;
+}
+
+/** The probe's WebGL2 context, given to the 3D stage once (null afterwards or if there is none). */
+export function takeProbedContext() {
+  const handoff = probe?.handoff || null;
+  if (probe) probe.handoff = null;
+  return handoff;
 }
 
 /**

@@ -1,6 +1,6 @@
 ﻿import { useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, LogIn } from "lucide-react";
 import AuthLayout from "../components/auth/AuthLayout";
 import Input, { PasswordInput } from "../components/ui/Input";
 import Button from "../components/ui/Button";
@@ -33,7 +33,7 @@ export default function Login() {
     <AuthLayout
       title="Masuk"
       pose="coin"
-      subtitle="Lanjutkan catatan keuanganmu."
+      subtitle="Selamat datang lagi. Masuk untuk lihat catatanmu."
       footer={
         <>
           Belum punya akun?{" "}
@@ -56,7 +56,7 @@ export default function Login() {
           Lupa kata sandi?
         </Link>
         <Button type="submit" variant="primary" size="lg" block loading={busy}>
-          Masuk
+          <LogIn size={19} aria-hidden="true" /> Masuk
         </Button>
       </form>
     </AuthLayout>

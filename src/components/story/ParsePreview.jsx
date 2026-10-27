@@ -49,12 +49,12 @@ export default function ParsePreview() {
         ) : (
           <p className="muted">
             {result.intent === "question"
-              ? "Itu pertanyaan — setelah masuk, Asisten bisa menjawabnya dari catatanmu."
+              ? "Itu pertanyaan. Setelah masuk, Asisten bisa menjawabnya dari catatanmu."
               : "Belum terbaca sebagai transaksi. Sebutkan apa transaksinya dan nominalnya."}
           </p>
         )}
       </div>
-      <p className="field__hint">Diproses di perangkatmu — tidak ada yang dikirim atau disimpan dari demo ini.</p>
+      <p className="field__hint">Diproses di perangkatmu. Tidak ada yang dikirim atau disimpan dari demo ini.</p>
     </div>
   );
 }

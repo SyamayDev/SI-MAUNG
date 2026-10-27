@@ -61,9 +61,14 @@ export function StepDots({ labels }) {
   );
 }
 
-export function Kicker({ n, total = 6, children }) {
+export function Kicker({ n, total = 6, icon: Icon, children }) {
   return (
     <p className="eyebrow chapter__kicker reveal">
+      {Icon && (
+        <span className="chapter__kicker-icon" aria-hidden="true">
+          <Icon size={14} />
+        </span>
+      )}
       <span>
         <b>{String(n).padStart(2, "0")}</b> / {String(total).padStart(2, "0")}
       </span>

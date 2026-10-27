@@ -6,7 +6,7 @@
  */
 import { useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowDownLeft, ArrowRight, ArrowUpRight, BarChart3, Bot, History, Keyboard, Mic, PenLine, PiggyBank, RefreshCw, Settings } from "lucide-react";
+import { ArrowDownLeft, ArrowRight, ArrowUpRight, BarChart3, Bot, History, Keyboard, LayoutGrid, Mic, PenLine, PiggyBank, RefreshCw, Settings, Wallet } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useFinance } from "../context/FinanceContext";
 import { useModal } from "../context/ModalContext";
@@ -22,7 +22,7 @@ import { categoryColor } from "../lib/finance/categories";
 import { formatPercent, formatRupiah, formatSigned } from "../lib/finance/format";
 import { EXAMPLE_PHRASES } from "../lib/finance/examples";
 
-const LABELS = ["Ringkasan", "Suara", "Arus", "Pola", "Tabungan", "Kendali"];
+const LABELS = ["Ringkasan", "Suara", "Arus", "Analitik", "Tabungan", "Menu"];
 
 function greeting(now = new Date()) {
   const h = now.getHours();
@@ -82,7 +82,7 @@ export default function Dashboard() {
           {firstName ? `, ${firstName}` : ""}.
         </p>
         <h1 id="ch-hero" className="chapter__title display reveal" style={{ "--i": 1 }}>
-          Kenali <span className="accent-italic">uangmu.</span>
+          Ringkasan <span className="accent-italic">uangmu.</span>
         </h1>
 
         <p className="hero__balance-label reveal" style={{ "--i": 2 }}>
@@ -138,9 +138,11 @@ export default function Dashboard() {
 
       {/* 02 — voice: three steps that take turns in place */}
       <Chapter index={1} steps={3} labelledBy="ch-voice" className="on-stage">
-        <Kicker n={2}>Catat dengan suara</Kicker>
+        <Kicker n={2} icon={Mic}>
+          Catat dengan suara
+        </Kicker>
         <h2 id="ch-voice" className="chapter__title display reveal" style={{ "--i": 1 }}>
-          Ucapkan, <span className="accent-italic">MAUNG catat.</span>
+          Bilang saja, <span className="accent-italic">MAUNG yang menulis.</span>
         </h2>
         <StepDots labels={["Ucapkan", "Periksa", "Simpan"]} />
         <Deck>
@@ -149,7 +151,7 @@ export default function Dashboard() {
               <p className="deck__title">
                 <b>1</b> Ucapkan
               </p>
-              <p className="muted">Bicara seperti biasa — “kemarin beli buku 45 ribu”. Atau coba salah satu kalimat:</p>
+              <p className="muted">Contohnya “kemarin beli buku 45 ribu”. Atau pilih salah satu kalimat ini:</p>
               <div className="row" style={{ marginTop: "var(--sp-3)", gap: "var(--sp-2)" }}>
                 {EXAMPLE_PHRASES.slice(0, 3).map((p) => (
                   <button key={p} type="button" className="chip" onClick={() => openCapture({ mode: "text", text: p })}>
@@ -164,7 +166,7 @@ export default function Dashboard() {
               <p className="deck__title">
                 <b>2</b> Periksa
               </p>
-              <p className="muted">MAUNG membaca nominal, jenis, kategori, dan tanggal. Bagian yang meragukan ditandai dan bisa langsung kamu ubah — tidak ada yang tersimpan sebelum kamu setujui.</p>
+              <p className="muted">MAUNG mengisi nominal, jenis, kategori, dan tanggal. Bagian yang belum pasti ditandai supaya bisa kamu ubah. Tidak ada yang tersimpan sebelum kamu setuju.</p>
               <div className="deck__more">
                 <Button onClick={() => openCapture({ mode: "text" })}>
                   <Keyboard size={16} aria-hidden="true" /> Coba ketik kalimat
@@ -177,7 +179,7 @@ export default function Dashboard() {
               <p className="deck__title">
                 <b>3</b> Simpan
               </p>
-              <p className="muted">Tersimpan ke akunmu setelah kamu menekan Simpan.</p>
+              <p className="muted">Begitu kamu tekan Simpan, catatannya masuk ke akunmu.</p>
               <p className="field__label" style={{ marginTop: "var(--sp-3)" }}>
                 Terakhir dicatat lewat suara
               </p>
@@ -202,9 +204,11 @@ export default function Dashboard() {
 
       {/* 03 — inflow / outflow this month, then the latest records */}
       <Chapter index={2} steps={2} labelledBy="ch-flow" className="on-stage">
-        <Kicker n={3}>Arus {month.label}</Kicker>
+        <Kicker n={3} icon={Wallet}>
+          Arus {month.label}
+        </Kicker>
         <h2 id="ch-flow" className="chapter__title display reveal" style={{ "--i": 1 }}>
-          Setiap arus <span className="accent-italic">punya arti.</span>
+          Masuk dan keluar <span className="accent-italic">bulan ini.</span>
         </h2>
         <StepDots labels={["Masuk & keluar", "Transaksi terbaru"]} />
         <Deck>
@@ -265,7 +269,7 @@ export default function Dashboard() {
                 </ul>
               ) : (
                 <p className="muted" style={{ fontSize: "var(--fs-sm)", marginTop: "var(--sp-2)" }}>
-                  {loading ? "Memuat…" : "Belum ada transaksi. Catat yang pertama — misalnya uang makan hari ini."}
+                  {loading ? "Memuat…" : "Belum ada transaksi. Coba catat uang makan hari ini."}
                 </p>
               )}
             </div>
@@ -275,9 +279,11 @@ export default function Dashboard() {
 
       {/* 04 — patterns: categories, then the computed insights */}
       <Chapter index={3} steps={categories.length && insights.length ? 2 : 1} labelledBy="ch-pattern" className="on-stage">
-        <Kicker n={4}>Pola pengeluaran</Kicker>
+        <Kicker n={4} icon={BarChart3}>
+          Pengeluaran
+        </Kicker>
         <h2 id="ch-pattern" className="chapter__title display reveal" style={{ "--i": 1 }}>
-          Lihat pola, <span className="accent-italic">bukan tebakan.</span>
+          Ke mana <span className="accent-italic">uangmu pergi.</span>
         </h2>
         {categories.length > 0 && insights.length > 0 && <StepDots labels={["Kategori", "Wawasan"]} />}
         <Deck>
@@ -308,7 +314,7 @@ export default function Dashboard() {
                   </ul>
                 </>
               ) : (
-                <p className="muted">{loading ? "Memuat…" : `Belum ada pengeluaran di ${month.label}, jadi belum ada pola yang bisa dibaca. Pola muncul setelah kamu mencatat beberapa pengeluaran.`}</p>
+                <p className="muted">{loading ? "Memuat…" : `Belum ada pengeluaran di ${month.label}. Setelah kamu mencatat beberapa pengeluaran, rinciannya muncul di sini.`}</p>
               )}
               {!(categories.length && insights.length) && (
                 <div className="deck__more">
@@ -344,9 +350,11 @@ export default function Dashboard() {
 
       {/* 05 — savings goals */}
       <Chapter index={4} labelledBy="ch-savings" className="on-stage">
-        <Kicker n={5}>Tujuan tabungan</Kicker>
+        <Kicker n={5} icon={PiggyBank}>
+          Tujuan tabungan
+        </Kicker>
         <h2 id="ch-savings" className="chapter__title display reveal" style={{ "--i": 1 }}>
-          Sedikit demi <span className="accent-italic">sedikit.</span>
+          Tabunganmu <span className="accent-italic">sejauh ini.</span>
         </h2>
         <div className="panel reveal" style={{ "--i": 2 }}>
           {goalsStatus === "error" ? (
@@ -380,7 +388,7 @@ export default function Dashboard() {
               })}
             </>
           ) : (
-            <p className="muted">{goalsStatus === "ready" ? "Belum ada tujuan tabungan. Tentukan satu target — MAUNG akan menghitung berapa yang perlu disisihkan tiap bulan." : "Memuat…"}</p>
+            <p className="muted">{goalsStatus === "ready" ? "Belum ada tujuan tabungan. Buat satu target, nanti MAUNG menghitung berapa yang perlu disisihkan tiap bulan." : "Memuat…"}</p>
           )}
           <div className="deck__more">
             <Button variant="primary" onClick={() => navigate("/savings", { state: progress ? undefined : { create: true } })}>
@@ -392,9 +400,11 @@ export default function Dashboard() {
 
       {/* 06 — quick actions */}
       <Chapter index={5} labelledBy="ch-control" className="on-stage">
-        <Kicker n={6}>Kendali</Kicker>
+        <Kicker n={6} icon={LayoutGrid}>
+          Menu cepat
+        </Kicker>
         <h2 id="ch-control" className="chapter__title display reveal" style={{ "--i": 1 }}>
-          Keuanganmu, <span className="accent-italic">tetap dalam kendalimu.</span>
+          Mau lanjut <span className="accent-italic">ke mana?</span>
         </h2>
         <div className="quick-grid reveal" style={{ "--i": 2, marginTop: "var(--sp-5)" }}>
           <button type="button" className="quick-card quick-card--amber" onClick={() => openCapture()}>
@@ -429,7 +439,7 @@ export default function Dashboard() {
           </Link>
         </div>
         <p className="story-footer" style={{ padding: "var(--sp-5) 0 0", textAlign: "left" }}>
-          <ArrowRight size={12} aria-hidden="true" style={{ display: "inline" }} /> Tombol mikrofon selalu ada di menu — di ponsel tepat di tengah bawah.
+          <ArrowRight size={12} aria-hidden="true" style={{ display: "inline" }} /> Tombol mikrofon selalu ada. Di ponsel, letaknya di tengah bawah.
         </p>
       </Chapter>
     </div>

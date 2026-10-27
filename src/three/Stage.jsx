@@ -15,11 +15,10 @@
  *    released on unmount
  */
 import { useEffect, useRef } from "react";
-import { NeutralToneMapping, PerspectiveCamera, PMREMGenerator, Scene, SRGBColorSpace, Timer, WebGLRenderer } from "three";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { NeutralToneMapping, PerspectiveCamera, Scene, SRGBColorSpace, Timer, WebGLRenderer } from "three";
 import { buildWorld } from "./world/buildWorld.js";
 import { scene as store, setScene, subscribeScene } from "../lib/sceneStore.js";
-import { deviceTier } from "../lib/device.js";
+import { deviceTier, glAttributes, takeProbedContext } from "../lib/device.js";
 import { stepActive, stepDone, stepFail } from "../lib/bootLoader.js";
 
 const nextTask = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -28,164 +27,186 @@ export default function Stage() {
   const hostRef = useRef(null);
 
   useEffect(() => {
-    const host = hostRef.current;
-    let disposed = false;
-    const tier = deviceTier();
-    const maxDpr = tier === "high" ? 1.75 : tier === "mid" ? 1.5 : 1;
-    let dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
-    let step = "model";
-
-    const fail = (message) => {
-      stepFail(step, message);
-      setScene({ failed: true, ready: false });
+    // Start once the browser is idle: the page's first paint (headline, buttons)
+    // never waits for the GPU set-up below.
+    let cleanup = null;
+    let cancelled = false;
+    const begin = () => {
+      if (!cancelled) cleanup = setup(hostRef.current);
     };
-
-    let renderer;
-    try {
-      renderer = new WebGLRenderer({ antialias: tier !== "low", alpha: true, stencil: false, powerPreference: "high-performance" });
-    } catch {
-      fail("WebGL tidak dapat dijalankan di perangkat ini.");
-      return undefined;
-    }
-    renderer.outputColorSpace = SRGBColorSpace;
-    renderer.toneMapping = NeutralToneMapping; // keeps the brand amber saturated
-    renderer.setClearColor(0x000000, 0);
-    renderer.setPixelRatio(dpr);
-    const canvas = renderer.domElement;
-    canvas.setAttribute("aria-hidden", "true");
-    canvas.tabIndex = -1;
-    host.appendChild(canvas);
-
-    const scene = new Scene();
-    const camera = new PerspectiveCamera(30, 1, 0.1, 80);
-    camera.position.set(1.2, 2.2, 9);
-    const size = { width: 1, height: 1 };
-    const timer = new Timer();
-    const clock = { elapsedTime: 0 };
-    const state = { camera, size, clock, scene };
-
-    const resize = () => {
-      const w = Math.max(1, host.clientWidth);
-      const h = Math.max(1, host.clientHeight);
-      size.width = w;
-      size.height = h;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-    };
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(host);
-
-    let world = null;
-    let envRT = null;
-    const pmrem = new PMREMGenerator(renderer);
-    const room = new RoomEnvironment();
-
-    // Frame budget: drop the pixel ratio a step if the average frame stays slower than ~30 fps.
-    let budgetTime = 0;
-    let budgetFrames = 0;
-    let first = true;
-    let resumed = true;
-    const frame = (time) => {
-      timer.update(time);
-      const delta = resumed ? 1 / 60 : timer.getDelta(); // a paused stretch is not one huge frame
-      resumed = false;
-      clock.elapsedTime = timer.getElapsed();
-      world.update(state, delta);
-      renderer.render(scene, camera);
-      if (first) {
-        first = false;
-        requestAnimationFrame(() => {
-          stepDone("ready");
-          setScene({ ready: true });
-        });
-      }
-      budgetTime += delta;
-      budgetFrames += 1;
-      if (budgetTime > 2) {
-        if (budgetTime / budgetFrames > 1 / 30 && dpr > 1) {
-          dpr = Math.max(1, +(dpr - 0.25).toFixed(2));
-          renderer.setPixelRatio(dpr);
-          resize();
-        }
-        budgetTime = 0;
-        budgetFrames = 0;
-      }
-    };
-
-    let running = false;
-    const sync = () => {
-      const visible = store.mode !== "off" && (store.mode !== "story" || store.inView);
-      const want = Boolean(world) && visible && !store.failed && !document.hidden;
-      if (want === running) return;
-      running = want;
-      if (want) resumed = true;
-      renderer.setAnimationLoop(want ? frame : null);
-    };
-    const unsubscribe = subscribeScene(sync);
-    document.addEventListener("visibilitychange", sync);
-
-    const onLost = (e) => {
-      e.preventDefault();
-      setScene({ failed: true, ready: false });
-    };
-    canvas.addEventListener("webglcontextlost", onLost);
-
-    (async () => {
-      try {
-        stepActive("model");
-        await nextTask();
-        if (disposed) return;
-        world = buildWorld({ tier });
-        stepDone("model");
-
-        step = "scene";
-        stepActive("scene");
-        await nextTask();
-        if (disposed) return;
-        envRT = pmrem.fromScene(room, 0.04);
-        scene.environment = envRT.texture;
-        scene.environmentIntensity = 0.45;
-        scene.add(world.root);
-        stepDone("scene");
-
-        step = "shader";
-        stepActive("shader");
-        world.update(state, 0); // place camera, coins and MAUNG before compiling
-        await renderer.compileAsync(scene, camera);
-        if (disposed) return;
-        stepDone("shader");
-
-        step = "ready";
-        stepActive("ready");
-        sync();
-      } catch {
-        if (!disposed) fail("Scene 3D gagal disiapkan di perangkat ini.");
-      }
-    })();
-
+    const idle = "requestIdleCallback" in window ? window.requestIdleCallback(begin, { timeout: 400 }) : setTimeout(begin, 50);
     return () => {
-      disposed = true;
-      renderer.setAnimationLoop(null);
-      unsubscribe();
-      document.removeEventListener("visibilitychange", sync);
-      canvas.removeEventListener("webglcontextlost", onLost);
-      ro.disconnect();
-      if (world) {
-        scene.remove(world.root);
-        world.dispose();
-      }
-      scene.environment = null;
-      envRT?.dispose();
-      pmrem.dispose();
-      room.dispose?.();
-      renderer.dispose();
-      renderer.forceContextLoss();
-      canvas.remove();
-      setScene({ ready: false });
+      cancelled = true;
+      if ("requestIdleCallback" in window) window.cancelIdleCallback(idle);
+      else clearTimeout(idle);
+      cleanup?.();
     };
   }, []);
 
   return <div ref={hostRef} className="scene-host__canvas" />;
+}
+
+/** Builds the renderer, world and loop inside `host`; returns the cleanup. */
+function setup(host) {
+  let disposed = false;
+  const tier = deviceTier();
+  const maxDpr = tier === "high" ? 1.75 : tier === "mid" ? 1.5 : 1;
+  let dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+  let step = "model";
+
+  const fail = (message) => {
+    stepFail(step, message);
+    setScene({ failed: true, ready: false });
+  };
+
+  let renderer;
+  try {
+    // Reuse the context lib/device opened to check WebGL2 (never create two).
+    const handoff = takeProbedContext();
+    renderer = new WebGLRenderer({ ...glAttributes(), ...(handoff ? { canvas: handoff.canvas, context: handoff.gl } : {}) });
+  } catch {
+    fail("WebGL tidak dapat dijalankan di perangkat ini.");
+    return undefined;
+  }
+  renderer.outputColorSpace = SRGBColorSpace;
+  renderer.toneMapping = NeutralToneMapping; // keeps the brand amber saturated
+  renderer.setClearColor(0x000000, 0);
+  renderer.setPixelRatio(dpr);
+  const canvas = renderer.domElement;
+  canvas.setAttribute("aria-hidden", "true");
+  canvas.tabIndex = -1;
+  host.appendChild(canvas);
+
+  const scene = new Scene();
+  const camera = new PerspectiveCamera(30, 1, 0.1, 80);
+  camera.position.set(1.2, 2.2, 9);
+  const size = { width: 1, height: 1 };
+  const timer = new Timer();
+  const clock = { elapsedTime: 0 };
+  const state = { camera, size, clock, scene };
+
+  const resize = () => {
+    const w = Math.max(1, host.clientWidth);
+    const h = Math.max(1, host.clientHeight);
+    size.width = w;
+    size.height = h;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  };
+  resize();
+  const ro = new ResizeObserver(resize);
+  ro.observe(host);
+
+  let world = null;
+  // The render loop may only start once compileAsync has finished: an earlier
+  // frame would compile every shader synchronously and freeze the page.
+  let compiled = false;
+
+  // Frame budget: drop the pixel ratio a step if the average frame stays slower than ~30 fps.
+  let budgetTime = 0;
+  let budgetFrames = 0;
+  let first = true;
+  let resumed = true;
+  const frame = (time) => {
+    timer.update(time);
+    const delta = resumed ? 1 / 60 : timer.getDelta(); // a paused stretch is not one huge frame
+    resumed = false;
+    clock.elapsedTime = timer.getElapsed();
+    const tf = first ? performance.now() : 0;
+    world.update(state, delta);
+    renderer.render(scene, camera);
+    if (first) {
+      performance.measure("simaung:first-frame", { start: tf, detail: { programs: renderer.info.programs?.length } });
+      first = false;
+      requestAnimationFrame(() => {
+        stepDone("ready");
+        setScene({ ready: true });
+      });
+    }
+    budgetTime += delta;
+    budgetFrames += 1;
+    if (budgetTime > 2) {
+      if (budgetTime / budgetFrames > 1 / 30 && dpr > 1) {
+        dpr = Math.max(1, +(dpr - 0.25).toFixed(2));
+        renderer.setPixelRatio(dpr);
+        resize();
+      }
+      budgetTime = 0;
+      budgetFrames = 0;
+    }
+  };
+
+  let running = false;
+  const sync = () => {
+    const visible = store.mode !== "off" && (store.mode !== "story" || store.inView);
+    const want = Boolean(world) && compiled && visible && !store.failed && !document.hidden;
+    if (want === running) return;
+    running = want;
+    if (want) resumed = true;
+    renderer.setAnimationLoop(want ? frame : null);
+  };
+  const unsubscribe = subscribeScene(sync);
+  document.addEventListener("visibilitychange", sync);
+
+  const onLost = (e) => {
+    e.preventDefault();
+    setScene({ failed: true, ready: false });
+  };
+  canvas.addEventListener("webglcontextlost", onLost);
+
+  (async () => {
+    try {
+      stepActive("model");
+      await nextTask();
+      if (disposed) return;
+      let t = performance.now();
+      world = buildWorld({ tier });
+      performance.measure("simaung:model", { start: t });
+      stepDone("model");
+
+      step = "scene";
+      stepActive("scene");
+      await nextTask();
+      if (disposed) return;
+      // No environment map: generating one (PMREM) blocked the main thread for
+      // ~1 s while the GPU driver compiled its shaders. buildWorld's sky/ground
+      // fill and frontal light give the same soft look at no start-up cost.
+      scene.add(world.root);
+      stepDone("scene");
+
+      step = "shader";
+      stepActive("shader");
+      world.update(state, 0); // place camera, coins and MAUNG before compiling
+      t = performance.now();
+      await renderer.compileAsync(scene, camera);
+      performance.measure("simaung:shaders", { start: t, detail: { programs: renderer.info.programs?.length } });
+      if (disposed) return;
+      stepDone("shader");
+
+      compiled = true;
+      step = "ready";
+      stepActive("ready");
+      sync();
+    } catch {
+      if (!disposed) fail("Scene 3D gagal disiapkan di perangkat ini.");
+    }
+  })();
+
+  return () => {
+    disposed = true;
+    renderer.setAnimationLoop(null);
+    unsubscribe();
+    document.removeEventListener("visibilitychange", sync);
+    canvas.removeEventListener("webglcontextlost", onLost);
+    ro.disconnect();
+    if (world) {
+      scene.remove(world.root);
+      world.dispose();
+    }
+    renderer.dispose();
+    renderer.forceContextLoss();
+    canvas.remove();
+    setScene({ ready: false });
+  };
 }

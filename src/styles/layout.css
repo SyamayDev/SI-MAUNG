@@ -366,3 +366,8 @@
 .more-menu__logout {
   color: var(--c-expense);
 }
+
+.sidebar__theme-btns {
+  display: flex;
+  gap: 6px;
+}

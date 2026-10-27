@@ -4,13 +4,16 @@ import ProtectedRoute, { PublicOnlyRoute } from "./components/layouts/ProtectedR
 import AppShell from "./components/layouts/AppShell";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import ScrollToTop from "./components/layouts/ScrollToTop";
+import RouteMeta from "./components/layouts/RouteMeta";
 import SceneHost from "./components/scene/SceneHost";
 import LoadingScreen from "./components/scene/LoadingScreen";
 import { useAuth } from "./context/AuthContext";
 import { ModalProvider } from "./context/ModalContext";
 import { bootStore } from "./lib/bootLoader";
+// The landing is the first page most visitors see: bundled with the app shell
+// (no extra round-trip before the first heading can paint).
+import Landing from "./pages/Landing";
 
-const Landing = lazy(() => import("./pages/Landing"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
@@ -40,6 +43,7 @@ export default function App() {
     <BrowserRouter basename={basename}>
       <ScrollToTop />
       <ModalProvider>
+        <RouteMeta />
         <SceneHost />
         {/* The page behind the loading screen is out of reach for keyboard and screen readers. */}
         <div className="app-root" inert={booting ? true : undefined}>

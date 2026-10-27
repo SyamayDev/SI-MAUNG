@@ -12,9 +12,9 @@ import { canRender3D, prefersReducedMotion } from "../lib/device";
 import { followDevice, setTheme, useTheme } from "../lib/theme";
 
 const REASONS = {
-  off: "Scene 3D dimatikan — tampilan memakai ilustrasi 2D.",
-  "no-webgl": "Browser ini tidak mendukung WebGL — ilustrasi 2D dipakai.",
-  software: "Grafis perangkat ini terlalu terbatas untuk 3D yang mulus — ilustrasi 2D dipakai.",
+  off: "Scene 3D dimatikan, tampilan memakai ilustrasi 2D.",
+  "no-webgl": "Browser ini tidak mendukung WebGL, jadi ilustrasi 2D yang dipakai.",
+  software: "Grafis perangkat ini kurang kuat untuk 3D yang mulus, jadi ilustrasi 2D yang dipakai.",
 };
 
 function ProfileForm() {
@@ -121,7 +121,7 @@ export default function Settings() {
           </h2>
           <p className={`chip ${speechSupported ? "chip--income" : "chip--expense"}`} style={{ margin: "var(--sp-3) 0" }}>
             {speechSupported ? <Mic size={14} aria-hidden="true" /> : <MicOff size={14} aria-hidden="true" />}
-            {speechSupported ? "Pengenalan suara didukung browser ini" : "Browser ini belum mendukung pengenalan suara — gunakan ketik"}
+            {speechSupported ? "Pengenalan suara didukung browser ini" : "Browser ini belum mendukung pengenalan suara, pakai ketik"}
           </p>
           <Switch
             checked={prefs.voiceAutoSave}

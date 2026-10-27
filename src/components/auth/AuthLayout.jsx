@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { Link } from "react-router-dom";
 import Logo from "../ui/Logo";
 import ThemeToggle from "../ui/ThemeToggle";
+import FullscreenToggle from "../ui/FullscreenToggle";
 import { asset } from "../../lib/assets";
 import { useMaung3D } from "../scene/sceneHooks";
 import { useMaungFrame } from "../scene/useMaungFrame";
@@ -22,11 +23,14 @@ export default function AuthLayout({ title, subtitle, art = "images/login-mascot
         <Link to="/" className="auth__logo" aria-label="SI-MAUNG — halaman utama">
           <Logo size={40} />
         </Link>
-        <ThemeToggle />
+        <span className="auth__tools">
+          <ThemeToggle />
+          <FullscreenToggle />
+        </span>
         <div className="auth__art" ref={frameRef} data-maung-frame>
           {!available && <img src={asset(art)} alt="" width="400" height="560" />}
         </div>
-        <p className="auth__tagline display">{tagline || <>Catat uangmu <span className="accent-italic">cukup dengan suara.</span></>}</p>
+        <p className="auth__tagline display">{tagline || <>Catat uang, <span className="accent-italic">cukup ngomong.</span></>}</p>
       </aside>
       <main className="auth__main" id="main">
         <div className="auth__card">

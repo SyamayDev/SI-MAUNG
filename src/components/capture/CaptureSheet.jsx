@@ -63,7 +63,7 @@ export default function CaptureSheet({ open, request, onClose }) {
           result = {
             intent: "transaction",
             draft: ai.draft,
-            issues: [{ field: "amount", message: "Dibaca oleh AI — periksa semua isian sebelum menyimpan." }],
+            issues: [{ field: "amount", message: "Dibaca oleh AI. Periksa semua isian sebelum menyimpan." }],
             confidence: { amount: 0, type: 0, category: 0, date: 0 },
             suggestion: null,
           };
@@ -230,7 +230,7 @@ export default function CaptureSheet({ open, request, onClose }) {
           ) : (
             <p className="callout callout--warn">
               <Keyboard size={18} aria-hidden="true" />
-              Browser ini belum mendukung pengenalan suara (mis. Firefox). Ketik kalimat transaksinya di bawah — MAUNG tetap memahaminya.
+              Browser ini belum mendukung pengenalan suara (mis. Firefox). Ketik saja kalimat transaksinya di bawah, hasilnya sama.
             </p>
           )}
 

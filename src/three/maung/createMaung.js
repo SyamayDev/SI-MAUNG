@@ -125,10 +125,12 @@ export function createMaung({ quality = "mid" } = {}) {
   // Physically based "vinyl toy" finish: velvet sheen on fur and fabric, clear-coat on shoes, eyes and nose.
   const pbr = (params, extra) => keep(rich && extra ? new MeshPhysicalMaterial({ ...params, ...extra }) : new MeshStandardMaterial(params));
 
+  const t0 = performance.now();
   const headMap = keep(headTexture());
   const headSheen = keep(headSheenTexture());
   const eyeMap = keep(eyeTexture());
   const coinMap = keep(coinTexture());
+  performance.measure("simaung:textures", { start: t0 });
 
   const mat = {
     head: pbr({ map: headMap, roughness: 0.74 }, { sheen: 0.75, sheenColor: 0xffd9a8, sheenColorMap: headSheen, sheenRoughness: 0.55 }),
@@ -148,8 +150,8 @@ export function createMaung({ quality = "mid" } = {}) {
     tongue: pbr({ color: C.tongue, roughness: 0.45 }),
     tooth: pbr({ color: "#ffffff", roughness: 0.3 }),
     inner: pbr({ color: C.inner, roughness: 0.75 }, { sheen: 0.5, sheenColor: 0xffffff, sheenRoughness: 0.6 }),
-    gold: pbr({ color: C.gold, metalness: 0.85, roughness: 0.28 }),
-    coinFace: pbr({ map: coinMap, metalness: 0.75, roughness: 0.3 }),
+    gold: pbr({ color: C.gold, metalness: 0.4, roughness: 0.3 }),
+    coinFace: pbr({ map: coinMap, metalness: 0.3, roughness: 0.36 }),
     button: pbr({ color: "#0b1030", roughness: 0.35 }),
     shine: keep(new MeshBasicMaterial({ color: 0xffffff })),
   };

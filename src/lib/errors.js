@@ -12,6 +12,8 @@ const AUTH_MESSAGES = [
   [/rate limit|too many requests|security purposes/i, "Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi."],
   [/invalid email|unable to validate email/i, "Format email tidak valid."],
   [/signups not allowed|signup.*disabled/i, "Pendaftaran akun baru sedang ditutup."],
+  // a wrong project key in the build — not the user's fault, and not an expired session
+  [/invalid api key|no api key/i, "Aplikasi belum terhubung dengan benar ke server (kunci API tidak valid). Hubungi pengelola SI-MAUNG."],
   [/auth session missing|session.*expired|jwt expired|invalid jwt/i, "Sesi Anda berakhir. Silakan masuk lagi."],
 ];
 

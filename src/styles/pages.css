@@ -796,3 +796,163 @@
 .switch[aria-checked="true"] .switch__thumb {
   transform: translateX(24px);
 }
+
+/* ---------- landing header: brand · account · round icon buttons ---------- */
+.landing__brand {
+  display: inline-flex;
+  min-width: 0;
+}
+
+.landing__auth {
+  display: none;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.landing__auth .btn {
+  min-height: 44px;
+  padding: 0 var(--sp-4);
+  font-size: var(--fs-sm);
+}
+
+.round-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--c-stage-glass) 70%, transparent);
+  border: 1px solid var(--c-stage-line);
+  backdrop-filter: blur(8px);
+}
+
+.round-group .round-btn,
+.round-group .theme-toggle {
+  width: 40px;
+  height: 40px;
+}
+
+@media (min-width: 640px) {
+  .landing__auth {
+    display: flex;
+  }
+
+  /* the account buttons are visible: the menu is not needed */
+  .landing .site-menu {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .landing__bar .logo__word,
+  .mobilebar .logo__word {
+    display: none;
+  }
+}
+
+.site-menu {
+  position: relative;
+}
+
+.site-menu__panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: -4px;
+  z-index: var(--z-dialog);
+  width: min(320px, calc(100vw - 2 * var(--gutter)));
+  padding: var(--sp-3);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  color: var(--c-ink);
+  border: 1px solid var(--c-line);
+  box-shadow: var(--sh-3);
+  animation: pop-in var(--dur-2) var(--ease-out);
+}
+
+.site-menu__panel[hidden] {
+  display: none;
+}
+
+.site-menu__account {
+  display: grid;
+  gap: var(--sp-2);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.site-menu__list {
+  display: grid;
+  gap: 2px;
+  margin-top: var(--sp-2);
+}
+
+.site-menu__link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: 46px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-md);
+  color: var(--c-ink);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  text-align: left;
+}
+
+.site-menu__link:hover,
+.site-menu__link:focus-visible {
+  background: var(--c-surface-2);
+}
+
+.site-menu__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--c-amber) 18%, var(--c-surface));
+  color: var(--c-accent-text);
+}
+
+/* ---------- small icon lists inside story chapters ---------- */
+.feature-list {
+  display: grid;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+.feature-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-weight: 650;
+  color: var(--c-on-stage-soft);
+}
+
+.feature-list svg {
+  flex: none;
+  padding: 7px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-md);
+  background: var(--c-stage-glass);
+  border: 1px solid var(--c-stage-line);
+  color: var(--c-stage-accent);
+}
+
+.auth__tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: end;
+}
+
+/* the logo link is a full-size touch target */
+.landing__brand,
+.mobilebar > a:first-child,
+.auth__logo {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}

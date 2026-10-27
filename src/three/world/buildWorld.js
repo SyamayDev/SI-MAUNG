@@ -116,6 +116,10 @@ export function buildWorld({ tier = "mid" } = {}) {
   const fill = new DirectionalLight("#ffffff", 0.55);
   fill.position.set(2, 1.5, 5);
   root.add(fill);
+  // soft frontal light: highlights on eyes, shoes and coins (there is no environment map)
+  const front = new DirectionalLight("#ffffff", 1.1);
+  front.position.set(0.5, 2.5, 6);
+  root.add(front);
   const inLight = new PointLight("#20c495", 0, 9, 1.6);
   inLight.position.set(-2.6, 1.6, 1.2);
   const outLight = new PointLight("#ff6b5e", 0, 9, 1.6);
@@ -183,7 +187,7 @@ export function buildWorld({ tier = "mid" } = {}) {
   /* ---------- coins ---------- */
   const N = tier === "high" ? 72 : tier === "mid" ? 54 : 36;
   const coinGeo = keep(new CylinderGeometry(0.13, 0.13, 0.03, tier === "low" ? 16 : 28));
-  const coinMat = keep(new MeshStandardMaterial({ color: "#ffffff", metalness: 0.75, roughness: 0.3 }));
+  const coinMat = keep(new MeshStandardMaterial({ color: "#ffffff", metalness: 0.3, roughness: 0.38 }));
   const coins = new InstancedMesh(coinGeo, coinMat, N);
   coins.frustumCulled = false;
   for (let i = 0; i < N; i++) coins.setColorAt(i, COLORS.gold);
@@ -342,12 +346,12 @@ export function buildWorld({ tier = "mid" } = {}) {
   const pose = { wave: 0, listen: 0, point: 0, coin: 0, cheer: 0 };
 
   /** Lighting and stage props per colour theme (MAUNG's own colours never change). */
-  function applyTheme(theme, scene3) {
+  function applyTheme(theme) {
     themeApplied = theme;
     const light = theme === "light";
     hemi.color.set(light ? "#fff3df" : "#c6d4ff");
     hemi.groundColor.set(light ? "#c99a5c" : "#3b2a1c");
-    hemi.intensity = light ? 0.95 : 0.6;
+    hemi.intensity = light ? 1.7 : 1.5;
     key.intensity = light ? 2.3 : 2.1;
     rim.color.set(light ? "#ffcf8a" : "#86a0ff");
     rim.intensity = light ? 1.3 : 1.9;
@@ -360,7 +364,6 @@ export function buildWorld({ tier = "mid" } = {}) {
     ringOutline.material.blending = light ? NormalBlending : AdditiveBlending;
     soundRings.forEach((r) => (r.material.blending = light ? NormalBlending : AdditiveBlending));
     COLORS.dim.set(light ? "#cdb995" : "#2c3468");
-    if (scene3) scene3.environmentIntensity = light ? 0.6 : 0.45;
   }
 
   // Portrait poses requested by pages (auth, onboarding).
@@ -396,7 +399,7 @@ export function buildWorld({ tier = "mid" } = {}) {
       const t = clock.elapsedTime;
       const tm = still ? 0 : t; // motion time: frozen for reduced motion
       const dt = Math.min(delta, 0.05);
-      if (store.theme !== themeApplied) applyTheme(store.theme, state.scene);
+      if (store.theme !== themeApplied) applyTheme(store.theme);
       const portrait = store.mode === "portrait";
       const snap = lastMode === "off" || !cam.init || still;
       if (t0 < 0 || (lastMode === "off" && store.mode !== "off")) {

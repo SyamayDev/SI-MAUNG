@@ -38,9 +38,23 @@ renderer.setSize(innerWidth, innerHeight);
 host.appendChild(renderer.domElement);
 
 const scene = new Scene();
-const pmrem = new PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.environmentIntensity = theme === "light" ? 0.55 : 0.45;
+// Default = the app's light-only setup (no environment map). env=1 adds the old
+// PMREM room environment for comparison.
+if (q.get("env") === "1") {
+  const t0 = performance.now();
+  const pmrem = new PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04, 0.1, 100, { size: Number(q.get("envsize") || 256) }).texture;
+  renderer.getContext().finish();
+  window.__pmremMs = Math.round(performance.now() - t0);
+  scene.environmentIntensity = theme === "light" ? 0.55 : 0.45;
+} else {
+  // light-only look: a bright sky/ground fill stands in for the room's diffuse light,
+  // a soft frontal key keeps highlights on eyes, shoes and coins
+  scene.add(new HemisphereLight("#ffffff", "#9a8878", Number(q.get("amb") || 1.6)));
+  const front = new DirectionalLight("#ffffff", Number(q.get("front") || 1.1));
+  front.position.set(0.5, 2.5, 6);
+  scene.add(front);
+}
 scene.add(new HemisphereLight(theme === "light" ? "#fff4e0" : "#c6d4ff", "#3b2a1c", theme === "light" ? 0.9 : 0.6));
 const key = new DirectionalLight("#ffe3b8", 2.1);
 key.position.set(-3, 5, 4.5);

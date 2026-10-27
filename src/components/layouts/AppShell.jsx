@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { LogOut, Mic, MoreHorizontal, PenLine } from "lucide-react";
 import Logo from "../ui/Logo";
 import ThemeToggle from "../ui/ThemeToggle";
+import FullscreenToggle from "../ui/FullscreenToggle";
 import Dialog from "../ui/Dialog";
 import { NAV_ITEMS } from "./navItems";
 import { useAuth } from "../../context/AuthContext";
@@ -50,8 +51,11 @@ function Sidebar() {
 
       <div className="sidebar__foot">
         <div className="sidebar__theme">
-          <span>Tema tampilan</span>
-          <ThemeToggle />
+          <span>Tampilan</span>
+          <span className="sidebar__theme-btns">
+            <ThemeToggle />
+            <FullscreenToggle />
+          </span>
         </div>
         <div className="sidebar__user">
           <span className="avatar" aria-hidden="true">
@@ -80,6 +84,7 @@ function MobileBar({ stage }) {
       </Link>
       <div className="mobilebar__actions">
         <ThemeToggle />
+        <FullscreenToggle />
         <Link to="/settings" className="avatar avatar--link" aria-label="Pengaturan akun">
           {(displayName || user?.email || "?").trim()[0]?.toUpperCase()}
         </Link>

@@ -62,6 +62,58 @@ function threeChunkManifest() {
   };
 }
 
+/**
+ * Absolute site URL for canonical / Open Graph / JSON-LD tags (index.html uses
+ * %SITE_URL%), plus robots.txt and sitemap.xml. Link previews (WhatsApp etc.)
+ * need absolute image URLs, so this is resolved at build time.
+ */
+function siteMeta(siteUrl) {
+  const publicPages = ["", "login", "register"];
+  return {
+    name: "simaung-site-meta",
+    transformIndexHtml: {
+      order: "pre",
+      handler: (html) => html.replaceAll("%SITE_URL%", siteUrl),
+    },
+    generateBundle() {
+      const today = new Date().toISOString().slice(0, 10);
+      const root = new URL(siteUrl).pathname;
+      this.emitFile({
+        type: "asset",
+        fileName: "robots.txt",
+        source: ["User-agent: *", "Allow: /", `Disallow: ${root}dashboard`, `Disallow: ${root}transactions`, `Disallow: ${root}settings`, "", `Sitemap: ${siteUrl}sitemap.xml`, ""].join("\n"),
+      });
+      const urls = publicPages.map((p) => `  <url><loc>${siteUrl}${p}</loc><lastmod>${today}</lastmod><priority>${p ? "0.5" : "1.0"}</priority></url>`);
+      this.emitFile({
+        type: "asset",
+        fileName: "sitemap.xml",
+        source: ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', ...urls, "</urlset>", ""].join("\n"),
+      });
+    },
+  };
+}
+
+/**
+ * The main stylesheet must not block the first paint: index.html already
+ * paints the loader with inline styles. The link becomes a preload that turns
+ * into a stylesheet when it arrives; LoadingScreen keeps the static loader up
+ * until then, so unstyled content is never visible.
+ */
+function nonBlockingCss() {
+  return {
+    name: "simaung-non-blocking-css",
+    apply: "build",
+    transformIndexHtml: {
+      order: "post",
+      handler: (html) =>
+        html.replace(/<link rel="stylesheet" crossorigin href="([^"]+)">/g, (_, href) =>
+          `<link rel="preload" as="style" crossorigin href="${href}" data-app-css onload="this.onload=null;this.rel='stylesheet'">` +
+          `<noscript><link rel="stylesheet" crossorigin href="${href}"></noscript>`,
+        ),
+    },
+  };
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ command, mode, isPreview }) => {
   const env = loadEnv(mode, process.cwd(), "VITE_");
@@ -70,6 +122,12 @@ export default defineConfig(({ command, mode, isPreview }) => {
   // VITE_BASE_PATH overrides both. `npm run dev` uses "/".
   const hostBase = process.env.VERCEL ? "/" : "/SI-MAUNG/";
   const base = command === "build" || isPreview ? env.VITE_BASE_PATH || hostBase : "/";
+  // Public address of this build (canonical, link previews, sitemap).
+  const vercelDomain = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  const siteUrl = (
+    env.VITE_SITE_URL ||
+    (command !== "build" && !isPreview ? "http://localhost:5173/" : vercelDomain ? `https://${vercelDomain}/` : `https://syamaydev.github.io${base}`)
+  ).replace(/\/?$/, "/");
 
   // The Vercel ↔ Supabase integration names the PUBLIC client settings without the
   // VITE_ prefix. Map exactly those two (URL + anon/publishable key) — never the
@@ -86,11 +144,17 @@ export default defineConfig(({ command, mode, isPreview }) => {
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(supabaseUrl || ""),
       "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(supabaseKey || ""),
     },
-    plugins: [react(), threeChunkManifest(), spaFallback()],
+    plugins: [react(), siteMeta(siteUrl), threeChunkManifest(), nonBlockingCss(), spaFallback()],
     build: {
       // three.js lives in its own lazy chunk (the 3D stage); keep the warning
       // meaningful for the entry bundle.
       chunkSizeWarningLimit: 800,
+      rolldownOptions: {
+        output: {
+          // one small icon chunk instead of a request per icon
+          codeSplitting: { groups: [{ name: "icons", test: /node_modules[/\\]lucide-react/ }] },
+        },
+      },
     },
   };
 });

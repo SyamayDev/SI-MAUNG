@@ -495,7 +495,8 @@
 }
 
 /* ================= Theme toggle ================= */
-.theme-toggle {
+.theme-toggle,
+.round-btn {
   display: inline-grid;
   place-items: center;
   width: var(--tap);
@@ -509,17 +510,20 @@
     border-color var(--dur-2) var(--ease-out);
 }
 
-.theme-toggle:hover {
+.theme-toggle:hover,
+.round-btn:hover {
   border-color: var(--c-ink);
 }
 
-.on-stage .theme-toggle {
+.on-stage .theme-toggle,
+.on-stage .round-btn {
   background: var(--c-stage-glass);
   border-color: var(--c-stage-line);
   color: var(--c-on-stage);
 }
 
-.on-stage .theme-toggle:hover {
+.on-stage .theme-toggle:hover,
+.on-stage .round-btn:hover {
   background: var(--c-stage-glass-hover);
   border-color: var(--c-stage-line-strong);
 }

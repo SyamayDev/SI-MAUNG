@@ -115,7 +115,7 @@ function ContributionForm({ goal, onDone }) {
       />
       <MoneyInput id="contrib-amount" label="Nominal" value={amount} onChange={setAmount} error={error} data-autofocus />
       <p className="field__hint">
-        Terkumpul saat ini {formatRupiah(current)} dari {formatRupiah(goal.target_amount)}. Setoran mengubah progres tujuan ini saja — tidak tercatat sebagai transaksi.
+        Terkumpul saat ini {formatRupiah(current)} dari {formatRupiah(goal.target_amount)}. Setoran hanya mengubah progres tujuan ini dan tidak tercatat sebagai transaksi.
       </p>
       <div className="dialog__actions">
         <Button onClick={onDone}>Batal</Button>
@@ -153,7 +153,7 @@ function GoalCard({ goal, onContribute, onEdit, onDelete }) {
           ? "Target tercapai!"
           : goal.deadline
             ? overdue
-              ? `Lewat batas ${formatDate(goal.deadline)} — kurang ${formatRupiah(target - current)}`
+              ? `Lewat batas ${formatDate(goal.deadline)}, kurang ${formatRupiah(target - current)}`
               : need
                 ? `${formatRupiah(need.perMonth)}/bulan hingga ${formatDate(goal.deadline)}`
                 : `Batas ${formatDate(goal.deadline)}`
@@ -229,7 +229,7 @@ export default function SavingsGoals() {
       ) : goals.length === 0 ? (
         <EmptyState
           title="Belum ada tujuan tabungan"
-          message="Dana darurat, laptop baru, liburan — tentukan targetnya dan MAUNG hitungkan setoran bulanannya."
+          message="Dana darurat, laptop baru, atau liburan. Tulis targetnya, nanti MAUNG hitungkan setoran bulanannya."
           art="images/onboarding-goals.webp"
           action={
             <Button variant="amber" onClick={() => setEditor({ goal: null })}>

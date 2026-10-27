@@ -5,7 +5,7 @@
  *   engine  the three.js chunk downloaded (byte progress when the build
  *           lists the chunk sizes, otherwise indeterminate) and evaluated
  *   model   MAUNG's geometry, materials and textures built
- *   scene   studio lighting baked (PMREM environment)
+ *   scene   world and lights added to the scene
  *   shader  GPU programs compiled (renderer.compileAsync)
  *   ready   the first frame drawn
  * The overlay only waits for the 3D steps when the current page shows MAUNG;

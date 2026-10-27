@@ -834,9 +834,58 @@
   text-align: left;
 }
 
-@media (max-width: 359px) {
-  /* the smallest phones: the demo keeps its input, result and privacy note */
+@media (max-width: 399px) {
+  /* phones: the demo keeps its (pre-filled) input, result and privacy note */
   .deck .parse-preview > .row {
     display: none;
+  }
+}
+
+.chapter__kicker-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--c-stage-glass);
+  border: 1px solid var(--c-stage-line);
+  color: var(--c-stage-accent);
+}
+
+.deck__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--c-amber) 20%, var(--c-surface));
+  color: var(--c-accent-text);
+}
+
+/* The opening chapter is the first thing painted: no entrance animation
+   (it would only delay the first meaningful paint; the loader covers it anyway). */
+.chapter[data-chapter="0"] .reveal {
+  opacity: 1;
+  translate: none;
+  transition: none;
+}
+
+/* 320–359 px phones: one-line chapter label and a slightly smaller title, so
+   each chapter fits the text zone below MAUNG without scrolling inside it. */
+@media (max-width: 359px) {
+  .chapter__kicker {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.1em;
+  }
+
+  .chapter__kicker::after {
+    display: none;
+  }
+
+  .chapter__title {
+    font-size: 1.42rem;
   }
 }

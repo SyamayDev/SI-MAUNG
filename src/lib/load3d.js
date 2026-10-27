@@ -31,7 +31,8 @@ async function prefetchWithProgress(onProgress) {
   };
   await Promise.all(
     files.map(async (f) => {
-      const res = await fetch(f.url, { credentials: "same-origin" });
+      // low priority: the page's own scripts, styles and fonts go first
+      const res = await fetch(f.url, { credentials: "same-origin", priority: "low" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       if (res.body?.getReader) {
         const reader = res.body.getReader();

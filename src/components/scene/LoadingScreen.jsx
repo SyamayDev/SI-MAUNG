@@ -42,9 +42,24 @@ export default function LoadingScreen() {
   const appReady = status !== "loading";
   const needs3D = support.ok && mode !== "off";
 
-  // The static first-paint loader in index.html hands over to this one.
+  // The static first-paint loader in index.html hands over to this one — but
+  // only once the main stylesheet (loaded without blocking the first paint)
+  // is active, so nothing unstyled is ever shown.
   useEffect(() => {
-    document.getElementById("boot-static")?.remove();
+    const handOver = () => document.getElementById("boot-static")?.remove();
+    const cssActive = () => getComputedStyle(document.documentElement).getPropertyValue("--z-loader").trim() !== "";
+    if (cssActive()) {
+      handOver();
+      return undefined;
+    }
+    const link = document.querySelector("link[data-app-css]");
+    const onLoad = () => handOver();
+    link?.addEventListener("load", onLoad);
+    const fallback = setTimeout(handOver, 8000);
+    return () => {
+      link?.removeEventListener("load", onLoad);
+      clearTimeout(fallback);
+    };
   }, []);
 
   useEffect(() => {
@@ -145,7 +160,7 @@ export default function LoadingScreen() {
           canSkip &&
           appReady && (
             <button type="button" className="boot__skip link-btn" onClick={() => finishBoot()}>
-              Masuk tanpa menunggu — MAUNG menyusul
+              Lanjut sekarang, MAUNG menyusul
             </button>
           )
         )}

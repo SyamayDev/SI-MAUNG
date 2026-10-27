@@ -66,7 +66,7 @@ export default function AIChatPage() {
           push({ role: "assistant", kind: "text", text: answer.answer, basis: answer.basis });
         } else if (isAIParserEnabled) {
           const ai = await parseWithAI(input);
-          if (ai.ok) push({ role: "assistant", kind: "proposal", text: "Dibaca oleh AI — periksa semua isian:", draft: ai.draft, review: { amount: "Hasil AI, mohon periksa." }, status: "pending", source: "ai" });
+          if (ai.ok) push({ role: "assistant", kind: "proposal", text: "Dibaca oleh AI. Periksa semua isian:", draft: ai.draft, review: { amount: "Hasil AI, mohon periksa." }, status: "pending", source: "ai" });
           else push({ role: "assistant", kind: "text", text: "Maaf, aku belum mengerti. Coba sebutkan transaksi dengan nominalnya, atau tanyakan ringkasan catatanmu.", examples: true });
         } else {
           push({ role: "assistant", kind: "text", text: "Maaf, aku belum mengerti itu. Aku hanya bisa mencatat transaksi dan menjawab pertanyaan tentang catatanmu, misalnya:", examples: true });
@@ -163,7 +163,7 @@ export default function AIChatPage() {
               )}
               {m.kind === "proposal" && m.status === "cancelled" && (
                 <p className="msg__status">
-                  <XCircle size={16} aria-hidden="true" /> Dibatalkan — tidak ada yang disimpan.
+                  <XCircle size={16} aria-hidden="true" /> Dibatalkan, tidak ada yang disimpan.
                 </p>
               )}
             </div>

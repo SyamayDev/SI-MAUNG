@@ -1,6 +1,6 @@
 ﻿import { useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertCircle, MailCheck } from "lucide-react";
+import { AlertCircle, MailCheck, UserPlus } from "lucide-react";
 import AuthLayout from "../components/auth/AuthLayout";
 import Input, { PasswordInput } from "../components/ui/Input";
 import Button from "../components/ui/Button";
@@ -64,7 +64,7 @@ export default function Register() {
   return (
     <AuthLayout
       title="Buat akun"
-      subtitle="Gratis. Mulai catat dalam satu menit."
+      subtitle="Gratis, cukup pakai email."
       art="images/register-mascot.webp"
       pose="point"
       footer={
@@ -88,7 +88,7 @@ export default function Register() {
         <PasswordInput id="password" name="password" label="Kata sandi" autoComplete="new-password" hint="Minimal 8 karakter." value={form.password} onChange={onChange} error={errors.password} />
         <PasswordInput id="confirm" name="confirm" label="Ulangi kata sandi" autoComplete="new-password" value={form.confirm} onChange={onChange} error={errors.confirm} />
         <Button type="submit" variant="primary" size="lg" block loading={busy}>
-          Buat akun
+          <UserPlus size={19} aria-hidden="true" /> Buat akun
         </Button>
       </form>
     </AuthLayout>

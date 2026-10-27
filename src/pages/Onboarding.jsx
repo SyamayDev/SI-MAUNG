@@ -4,6 +4,7 @@ import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Logo from "../components/ui/Logo";
 import ThemeToggle from "../components/ui/ThemeToggle";
+import FullscreenToggle from "../components/ui/FullscreenToggle";
 import { useMaung3D } from "../components/scene/sceneHooks";
 import { useMaungFrame } from "../components/scene/useMaungFrame";
 import { useAuth } from "../context/AuthContext";
@@ -58,6 +59,7 @@ export default function Onboarding() {
             </span>
           </p>
           <ThemeToggle />
+          <FullscreenToggle />
         </div>
       </header>
       <div className="onboarding__progress" aria-hidden="true">
@@ -72,7 +74,7 @@ export default function Onboarding() {
           {step === 0 && (
             <>
               <h1 className="onboarding__title">Halo, aku MAUNG.</h1>
-              <p className="muted">Aku membantu mencatat pemasukan dan pengeluaranmu — cukup dari satu kalimat. Siapkan dalam satu menit, ya.</p>
+              <p className="muted">Aku bantu mencatat uang masuk dan keluarmu, cukup dari satu kalimat. Pengaturannya cuma sebentar.</p>
               <Button variant="primary" size="lg" block onClick={() => setStep(1)} data-autofocus>
                 Mulai
               </Button>

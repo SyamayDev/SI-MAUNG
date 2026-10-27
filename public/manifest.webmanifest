@@ -1,0 +1,26 @@
+{
+  "name": "SI-MAUNG: Catat Keuangan dengan Suara",
+  "short_name": "SI-MAUNG",
+  "description": "Catat pemasukan dan pengeluaran cukup dengan satu kalimat, lihat ke mana uangmu pergi, dan pantau target tabungan.",
+  "lang": "id",
+  "dir": "ltr",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0d1436",
+  "theme_color": "#0d1436",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "Catat transaksi", "short_name": "Catat", "url": "./dashboard", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Riwayat", "url": "./transactions" }
+  ]
+}
