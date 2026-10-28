@@ -628,12 +628,28 @@
   overflow-wrap: anywhere;
 }
 
+/* Own messages use the inverse pair, which is high-contrast in both themes
+   (navy + ivory text in light mode, ivory + navy text in dark mode). */
 .msg--user .msg__bubble {
-  background: var(--c-ink);
-  color: var(--c-on-stage);
-  border-color: var(--c-ink);
+  background: var(--c-inverse);
+  color: var(--c-on-inverse);
+  border-color: var(--c-inverse);
   border-top-left-radius: var(--r-lg);
   border-top-right-radius: 6px;
+}
+
+.msg--user .msg__bubble ::selection {
+  background: var(--c-amber);
+  color: var(--c-on-amber);
+}
+
+.msg__list {
+  display: grid;
+  gap: var(--sp-1);
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .msg__basis {
@@ -644,6 +660,25 @@
 .msg__card {
   padding-top: var(--sp-3);
   border-top: 1px dashed var(--c-line-strong);
+  /* the bubble may break long words anywhere; form labels must not ("Pengelu-aran") */
+  overflow-wrap: normal;
+}
+
+.msg__card .segmented__option {
+  white-space: nowrap;
+}
+
+/* Phones: a transaction form needs the full width — drop the avatar beside it. */
+@media (max-width: 480px) {
+  .msg:has(.msg__card) .msg__avatar {
+    display: none;
+  }
+
+  .msg:has(.msg__card) .msg__bubble {
+    max-width: 100%;
+    width: 100%;
+    padding-inline: var(--sp-3);
+  }
 }
 
 .msg__card .tx-editor__pair {

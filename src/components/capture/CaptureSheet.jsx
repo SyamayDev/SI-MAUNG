@@ -17,6 +17,8 @@ import { useToast } from "../../context/ToastContext";
 import { asset } from "../../lib/assets";
 import { EXAMPLE_PHRASES } from "../../lib/finance/examples";
 
+const COUNTERPARTY_LABEL = { merchant: "Tempat", recipient: "Penerima", source: "Dari" };
+
 const LISTEN_LABEL = {
   idle: "Ketuk untuk bicara",
   starting: "Menyiapkan mikrofon…",
@@ -41,7 +43,7 @@ export default function CaptureSheet({ open, request, onClose }) {
   const [stage, setStage] = useState("input"); // input | review | saved
   const [typed, setTyped] = useState("");
   const [notice, setNotice] = useState(null); // { kind, text, link? }
-  const [parsed, setParsed] = useState(null); // { draft, review, suggestion, source, heard, channel }
+  const [parsed, setParsed] = useState(null); // { draft, review, choices, counterparty, source, heard, channel }
   const [saved, setSaved] = useState(null); // { row, auto }
   const [processing, setProcessing] = useState(false);
   const [undoing, setUndoing] = useState(false);
@@ -63,9 +65,10 @@ export default function CaptureSheet({ open, request, onClose }) {
           result = {
             intent: "transaction",
             draft: ai.draft,
-            issues: [{ field: "amount", message: "Dibaca oleh AI. Periksa semua isian sebelum menyimpan." }],
+            issues: [{ field: "amount", message: ai.note || "Dibaca oleh AI. Periksa semua isian sebelum menyimpan." }],
             confidence: { amount: 0, type: 0, category: 0, date: 0 },
-            suggestion: null,
+            choices: ai.choices,
+            counterparty: null,
           };
           source = "ai";
         }
@@ -89,7 +92,7 @@ export default function CaptureSheet({ open, request, onClose }) {
       }
 
       const review = Object.fromEntries(result.issues.map((i) => [i.field, i.message]));
-      const entry = { draft: result.draft, review, suggestion: result.suggestion, source, heard: text, channel };
+      const entry = { draft: result.draft, review, choices: result.choices || [], counterparty: result.counterparty, source, heard: text, channel };
 
       if (prefs.voiceAutoSave && source === "local" && isConfidentDraft(result)) {
         setProcessing(true);
@@ -123,10 +126,10 @@ export default function CaptureSheet({ open, request, onClose }) {
       setSaved(null);
       setProcessing(false);
       if (request?.mode === "edit") {
-        setParsed({ draft: request.transaction, review: {}, suggestion: null, source: "manual", heard: "", channel: "manual" });
+        setParsed({ draft: request.transaction, review: {}, choices: [], source: "manual", heard: "", channel: "manual" });
         setStage("review");
       } else if (request?.mode === "manual") {
-        setParsed({ draft: emptyDraft(request.type), review: {}, suggestion: null, source: "manual", heard: "", channel: "manual" });
+        setParsed({ draft: emptyDraft(request.type), review: {}, choices: [], source: "manual", heard: "", channel: "manual" });
         setStage("review");
       } else {
         setParsed(null);
@@ -284,7 +287,7 @@ export default function CaptureSheet({ open, request, onClose }) {
 
           <div className="capture__footer">
             <button type="button" className="link-btn" onClick={() => {
-              setParsed({ draft: emptyDraft(), review: {}, suggestion: null, source: "manual", heard: "", channel: "manual" });
+              setParsed({ draft: emptyDraft(), review: {}, choices: [], source: "manual", heard: "", channel: "manual" });
               setStage("review");
             }}>
               <PencilLine size={15} aria-hidden="true" /> Isi formulir manual
@@ -304,13 +307,20 @@ export default function CaptureSheet({ open, request, onClose }) {
         <div className="capture__review">
           {parsed.heard && (
             <div className="capture__heard">
-              <img src={asset("images/logo-simang.webp")} alt="" width="40" height="36" />
+              <img src={asset("images/logo-simang-192.webp")} alt="" width="40" height="36" />
               <div>
                 <p className="eyebrow">{parsed.channel === "voice" ? "Kamu bilang" : "Kamu tulis"}</p>
                 <p className="capture__quote">“{parsed.heard}”</p>
-                <span className={`chip ${parsed.source === "ai" ? "chip--amber" : ""}`}>
-                  <Sparkles size={13} aria-hidden="true" />
-                  {parsed.source === "ai" ? "Dibaca AI (Edge Function)" : "Dibaca parser di perangkat"}
+                <span className="row capture__tags">
+                  <span className={`chip ${parsed.source === "ai" ? "chip--amber" : ""}`}>
+                    <Sparkles size={13} aria-hidden="true" />
+                    {parsed.source === "ai" ? "Dibaca AI, dicek parser" : "Dibaca parser di perangkat"}
+                  </span>
+                  {parsed.counterparty && (
+                    <span className="chip">
+                      {COUNTERPARTY_LABEL[parsed.counterparty.role]}: {parsed.counterparty.name}
+                    </span>
+                  )}
                 </span>
               </div>
             </div>
@@ -319,7 +329,7 @@ export default function CaptureSheet({ open, request, onClose }) {
             key={parsed.heard + (request?.transaction?.id || "")}
             initial={parsed.draft}
             review={parsed.review}
-            suggestion={parsed.suggestion}
+            choices={parsed.choices}
             submitLabel={isEdit ? "Simpan perubahan" : "Simpan transaksi"}
             onSubmit={submit}
             secondary={

@@ -27,7 +27,7 @@ function Sidebar() {
   const logout = useLogout();
   return (
     <aside className="sidebar on-stage" aria-label="Navigasi utama">
-      <Link to="/dashboard" className="sidebar__brand" aria-label="SI-MAUNG — Beranda">
+      <Link to="/dashboard" className="sidebar__brand" aria-label="SI MAUNG — Beranda">
         <Logo size={40} />
       </Link>
 
@@ -79,7 +79,7 @@ function MobileBar({ stage }) {
   const { displayName, user } = useAuth();
   return (
     <header className={`mobilebar ${stage ? "mobilebar--stage on-stage" : ""}`}>
-      <Link to="/dashboard" aria-label="SI-MAUNG — Beranda">
+      <Link to="/dashboard" aria-label="SI MAUNG — Beranda">
         <Logo size={34} />
       </Link>
       <div className="mobilebar__actions">

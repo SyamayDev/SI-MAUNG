@@ -72,8 +72,13 @@
       html { background: #f9efdd; color: #0e1533; }
       html[data-theme="dark"] { background: #0d1436; color: #fff8ea; }
       #boot-static { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; font: 600 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-      #boot-static .bs-card { display: grid; justify-items: center; gap: 14px; width: min(86vw, 360px); text-align: center; }
+      #boot-static .bs-card { display: grid; justify-items: center; gap: 14px; width: min(92vw, 560px); text-align: center; }
       #boot-static .bs-brand { font: 800 26px/1 Georgia, serif; letter-spacing: 0.02em; }
+      #boot-static .bs-tagline { margin: 4px 0 6px; font: 700 clamp(2.7rem, 12vw, 4.6rem)/1.04 Georgia, "Times New Roman", serif; letter-spacing: -0.02em; text-wrap: balance; }
+      #boot-static .bs-tagline em { color: #a35e00; }
+      html[data-theme="dark"] #boot-static .bs-tagline em { color: #f2a516; }
+      #boot-static .bs-status { color: #444d72; }
+      html[data-theme="dark"] #boot-static .bs-status { color: #cdd1e8; }
       #boot-static .bs-brand span { margin-left: 0.2em; color: #a35e00; }
       html[data-theme="dark"] #boot-static .bs-brand span { color: #f2a516; }
       #boot-static .bs-bar { position: relative; width: 100%; height: 8px; border-radius: 99px; background: rgba(14, 21, 51, 0.12); overflow: hidden; }
@@ -99,7 +104,8 @@
           <path fill="none" stroke="#1d140f" stroke-width="5" stroke-linecap="round" d="M60 25v16M49 28l3 12M71 28l-3 12M21 58l10 2M99 58l-10 2" />
         </svg>
         <p class="bs-brand">SI<span>MAUNG</span></p>
-        <p>Menyiapkan pengalaman SI-MAUNG…</p>
+        <p class="bs-tagline">Catat uang, <em>cukup ngomong.</em></p>
+        <p class="bs-status">Menyiapkan pengalaman SI-MAUNG…</p>
         <div class="bs-bar" role="progressbar" aria-label="Memuat aplikasi"></div>
       </div>
     </div>

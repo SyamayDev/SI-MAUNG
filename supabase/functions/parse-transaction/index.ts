@@ -17,7 +17,7 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const CATEGORIES = ["food", "transportation", "shopping", "bills", "entertainment", "health", "education", "family", "salary", "gift", "other"];
-const ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") ?? "https://syamaydev.github.io,http://localhost:5173,http://localhost:4173")
+const ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") ?? "https://syamaydev.github.io,https://si-maung.vercel.app,http://localhost:5173,http://localhost:4173")
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
@@ -92,7 +92,11 @@ Deno.serve(async (req) => {
     'Balas hanya JSON: {"is_transaction": boolean, "type": "income"|"expense"|null, "amount": number|null, ' +
     `"category": salah satu dari ${CATEGORIES.join(", ")}, "description": string maksimal 60 karakter, "transaction_date": "YYYY-MM-DD"|null}. ` +
     `Hari ini ${today}. Nominal dalam rupiah bulat. Jika nominal atau jenis tidak disebut, isi null — jangan menebak. ` +
-    "Jika kalimat bukan transaksi, is_transaction = false.";
+    "Aturan nominal: 'dua juta setengah' = 2500000, 'setengah juta' = 500000, 'dua koma lima juta' = 2500000, " +
+    "goceng = 5000, ceban = 10000, goban = 50000, 'cepek ceng' = 100000. Jika nominal bisa dibaca dua cara " +
+    "(misalnya 'dua juta lima ratus' atau 'cepek' tanpa satuan), isi amount = null. " +
+    "Jika kalimat bukan transaksi, is_transaction = false. " +
+    "Catatan: aplikasi selalu memeriksa ulang nominalmu dengan parser sendiri.";
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 10_000);

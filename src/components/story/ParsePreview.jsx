@@ -29,7 +29,8 @@ export default function ParsePreview() {
           <>
             <p className={`parse-preview__amount ${d.type === "income" ? "text-income" : "text-expense"}`}>
               {d.type === "income" ? <ArrowDownLeft size={18} aria-hidden="true" /> : <ArrowUpRight size={18} aria-hidden="true" />}
-              {d.type === "income" ? "Pemasukan" : "Pengeluaran"} · {d.amount ? formatRupiah(d.amount) : "nominal belum terdengar"}
+              {d.type === "income" ? "Pemasukan" : "Pengeluaran"} ·{" "}
+              {d.amount ? formatRupiah(d.amount) : result.choices.length ? `${result.choices.map(formatRupiah).join(" atau ")}?` : "nominal belum terdengar"}
             </p>
             <p className="parse-preview__desc">{d.description}</p>
             <p className="row" style={{ gap: "var(--sp-2)" }}>

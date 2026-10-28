@@ -46,7 +46,8 @@ export const CATEGORIES = [
       ["tas", 1], ["jaket", 2], ["kemeja", 2], ["hijab", 2], ["jilbab", 2], ["shopee", 2], ["tokopedia", 3],
       ["lazada", 3], ["blibli", 3], ["indomaret", 2], ["alfamart", 2], ["supermarket", 2], ["minimarket", 2],
       ["mall", 1], ["sabun", 2], ["sampo", 2], ["shampo", 2], ["skincare", 2], ["kosmetik", 2], ["parfum", 2],
-      ["deterjen", 2], ["perabot", 2], ["elektronik", 2], ["headset", 2], ["charger", 2],
+      ["deterjen", 2], ["perabot", 2], ["elektronik", 2], ["headset", 2], ["charger", 2], ["laptop", 2],
+      ["handphone", 2], ["smartphone", 2], ["gadget", 2], ["komputer", 2], ["printer", 2], ["earphone", 2],
     ],
   },
   {

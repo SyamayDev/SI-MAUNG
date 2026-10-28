@@ -68,7 +68,7 @@ function threeChunkManifest() {
  * need absolute image URLs, so this is resolved at build time.
  */
 function siteMeta(siteUrl) {
-  const publicPages = ["", "login", "register"];
+  const publicPages = ["", "login", "register", "forgot-password"];
   return {
     name: "simaung-site-meta",
     transformIndexHtml: {
@@ -114,6 +114,47 @@ function nonBlockingCss() {
   };
 }
 
+/**
+ * Paint first, then fetch the app. The first-paint screen in index.html
+ * (brand + tagline, inline styles, system fonts) needs no network at all, so
+ * the entry script, its module preloads and the stylesheet are requested
+ * right after the browser reports that first paint, instead of competing
+ * with it. Without Paint Timing support two animation frames are used; a
+ * background tab (no paint, no frames) falls back to a timer.
+ */
+function paintBeforeScripts() {
+  return {
+    name: "simaung-paint-before-scripts",
+    apply: "build",
+    transformIndexHtml: {
+      order: "post",
+      handler(html) {
+        const scripts = [];
+        const preloads = [];
+        const styles = [];
+        let out = html
+          .replace(/<script type="module" crossorigin src="([^"]+)"><\/script>\s*/g, (_, src) => (scripts.push(src), ""))
+          .replace(/<link rel="modulepreload" crossorigin href="([^"]+)">\s*/g, (_, href) => (preloads.push(href), ""))
+          .replace(/<link rel="preload" as="style" crossorigin href="([^"]+)" data-app-css onload="[^"]*">/g, (_, href) => (styles.push(href), ""));
+        if (!scripts.length) return html;
+        const add = (list, js) => `${JSON.stringify(list)}.forEach(function(u){${js}});`;
+        const loader =
+          "<script>(function(){var done=false;function go(){if(done)return;done=true;var h=document.head;" +
+          add(styles, 'var l=document.createElement("link");l.rel="stylesheet";l.crossOrigin="";l.href=u;l.setAttribute("data-app-css","");h.appendChild(l);') +
+          add(preloads, 'var l=document.createElement("link");l.rel="modulepreload";l.crossOrigin="";l.href=u;h.appendChild(l);') +
+          add(scripts, 'var s=document.createElement("script");s.type="module";s.crossOrigin="";s.src=u;h.appendChild(s);') +
+          "}function later(){setTimeout(go,0)}" +
+          "var po=window.PerformanceObserver,types=po&&po.supportedEntryTypes||[];" +
+          'if(types.indexOf("paint")>=0){try{new po(function(list,obs){list.getEntries().forEach(function(e){if(e.name==="first-contentful-paint"){obs.disconnect();later();}})}).observe({type:"paint",buffered:true});}catch(e){later();}}' +
+          "else{requestAnimationFrame(function(){requestAnimationFrame(later)})}" +
+          "setTimeout(go,800);})();</script>";
+        out = out.replace("</body>", `  ${loader}\n  </body>`);
+        return out;
+      },
+    },
+  };
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ command, mode, isPreview }) => {
   const env = loadEnv(mode, process.cwd(), "VITE_");
@@ -144,7 +185,7 @@ export default defineConfig(({ command, mode, isPreview }) => {
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(supabaseUrl || ""),
       "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(supabaseKey || ""),
     },
-    plugins: [react(), siteMeta(siteUrl), threeChunkManifest(), nonBlockingCss(), spaFallback()],
+    plugins: [react(), siteMeta(siteUrl), threeChunkManifest(), nonBlockingCss(), paintBeforeScripts(), spaFallback()],
     build: {
       // three.js lives in its own lazy chunk (the 3D stage); keep the warning
       // meaningful for the entry bundle.

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseAmount, parseDigitNumber } from "./amount.js";
+import { parseMoney, parseDigitNumber } from "./indonesianMoneyParser.js";
 import { detectDate } from "./dates.js";
 import { detectCategory, detectType } from "./classify.js";
 import { isConfidentDraft, parseTransactionText } from "./parseTransaction.js";
@@ -9,7 +9,7 @@ import { EXAMPLE_PHRASES } from "./examples.js";
 
 // Tuesday, 20 October 2026, 10:00 local time.
 const NOW = new Date(2026, 9, 20, 10, 0);
-const amountOf = (s) => parseAmount(normalizeText(s));
+const amountOf = (s) => parseMoney(normalizeText(s), { normalized: true });
 
 test("digit numbers with Indonesian and English separators", () => {
   assert.equal(parseDigitNumber("25000"), 25000);
@@ -76,16 +76,16 @@ test("ambiguous or missing amounts are flagged, never invented", () => {
   const bare = amountOf("beli kopi 25");
   assert.equal(bare.value, 25);
   assert.equal(bare.ambiguous, true);
-  assert.equal(bare.suggestion, 25000);
+  assert.deepEqual(bare.choices, [25000, 25]);
   assert.ok(bare.confidence < 0.5);
 
   const tail = amountOf("sejuta dua ratus");
-  assert.equal(tail.value, 1200000);
   assert.equal(tail.ambiguous, true);
+  assert.deepEqual(tail.choices, [1200000, 1000200], "colloquial reading first, literal second");
 
   const two = amountOf("kopi 25rb dan roti 15rb");
-  assert.equal(two.value, 40000);
   assert.equal(two.ambiguous, true);
+  assert.deepEqual(two.choices, [40000, 25000, 15000], "total or one of the amounts — never summed silently");
 
   assert.equal(amountOf("beli kopi").value, null);
   assert.equal(amountOf("").value, null);
@@ -167,13 +167,13 @@ test("CLAUDE.md sample phrases parse into reviewable drafts", () => {
   assert.equal(r.intent, "transaction");
   assert.deepEqual(
     { type: r.draft.type, amount: r.draft.amount, category: r.draft.category, description: r.draft.description, date: r.draft.transaction_date },
-    { type: "expense", amount: 25000, category: "food", description: "Beli nasi goreng", date: "2026-10-20" }
+    { type: "expense", amount: 25000, category: "food", description: "Nasi goreng", date: "2026-10-20" }
   );
 
   r = p("Bayar listrik seratus dua puluh lima ribu rupiah.");
   assert.equal(r.draft.amount, 125000);
   assert.equal(r.draft.category, "bills");
-  assert.equal(r.draft.description, "Bayar listrik");
+  assert.equal(r.draft.description, "Listrik");
 
   r = p("Gajian tiga juta rupiah hari ini.");
   assert.equal(r.draft.type, "income");
@@ -185,7 +185,7 @@ test("CLAUDE.md sample phrases parse into reviewable drafts", () => {
   assert.equal(r.draft.type, "income");
   assert.equal(r.draft.amount, 1200000);
   assert.equal(r.draft.category, "salary");
-  assert.equal(r.draft.description, "Dapat uang freelance");
+  assert.equal(r.draft.description, "Uang freelance");
 
   r = p("Beli bensin lima puluh ribu.");
   assert.equal(r.draft.amount, 50000);
@@ -194,13 +194,13 @@ test("CLAUDE.md sample phrases parse into reviewable drafts", () => {
   r = p("Terima transfer dua ratus ribu dari teman.");
   assert.equal(r.draft.type, "income");
   assert.equal(r.draft.amount, 200000);
-  assert.equal(r.draft.description, "Terima transfer dari teman");
+  assert.equal(r.draft.description, "Transfer dari teman");
 
   r = p("Kemarin beli buku 45 ribu.");
   assert.equal(r.draft.amount, 45000);
   assert.equal(r.draft.category, "education");
   assert.equal(r.draft.transaction_date, "2026-10-19");
-  assert.equal(r.draft.description, "Beli buku");
+  assert.equal(r.draft.description, "Buku");
 
   for (const s of ["Tadi beli nasi goreng dua puluh lima ribu.", "Gajian tiga juta rupiah hari ini."]) {
     assert.equal(isConfidentDraft(p(s)), true, s);
@@ -212,6 +212,8 @@ test("unclear input asks for review instead of guessing", () => {
   assert.equal(bare.intent, "transaction");
   assert.equal(isConfidentDraft(bare), false);
   assert.ok(bare.issues.some((i) => i.field === "amount"));
+  assert.equal(bare.draft.amount, null, "an unclear amount is never pre-filled");
+  assert.deepEqual(bare.choices, [25000, 25]);
 
   const noAmount = parseTransactionText("beli kopi", { now: NOW });
   assert.equal(noAmount.intent, "transaction");

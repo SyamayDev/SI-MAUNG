@@ -65,11 +65,13 @@ export function takeProbedContext() {
  * forces it for testing. Reduced motion keeps the 3D MAUNG but holds him still
  * (see sceneStore.reducedMotion).
  */
-export function canRender3D(scene3dPreference = getPreferences().scene3d) {
+export function canRender3D(scene3dPreference = getPreferences().scene3d, { probe: runProbe = true } = {}) {
   if (typeof window === "undefined") return { ok: false, reason: "ssr" };
   const forced = /[?&]3d=on\b/.test(window.location.search);
   if (/[?&]3d=off\b/.test(window.location.search)) return { ok: false, reason: "off" };
   if (!forced && scene3dPreference === "off") return { ok: false, reason: "off" };
+  // The GL probe is expensive; before it has run, report "probably yes".
+  if (!runProbe && !probe) return { ok: true, reason: "", pending: true };
   const { webgl, software } = probeWebGL();
   if (!webgl) return { ok: false, reason: "no-webgl" };
   if (software && !forced) return { ok: false, reason: "software" };

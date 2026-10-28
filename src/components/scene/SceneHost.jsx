@@ -1,8 +1,9 @@
 /**
  * The one 3D host for the whole visit, mounted next to the routes:
  *  • decides the scene mode from the route (story / portrait / off)
- *  • starts loading the 3D chunk at once when the page shows MAUNG, or when
- *    the browser is idle otherwise — so a later visit to the dashboard is instant
+ *  • loads the 3D chunk progressively: the page's text and buttons come first,
+ *    MAUNG 3D starts on the first interaction or once the page has settled
+ *    (lib/whenEngaged), with a light vector MAUNG in its place meanwhile
  *  • keeps the WebGL world alive across navigation (paused while "off")
  *  • shows the 2D posters ONLY when 3D is impossible or failed
  * Two layers behind the page: the sky backdrop (gradients that shift colour
@@ -11,9 +12,12 @@
  */
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useLocation } from "react-router-dom";
-import { setScene } from "../../lib/sceneStore";
+import { scene, setScene } from "../../lib/sceneStore";
+import { canRender3D } from "../../lib/device";
 import { loadStage } from "../../lib/load3d";
-import { bootStore, skip3DSteps } from "../../lib/bootLoader";
+import { bootProgress, bootStore, skip3DSteps } from "../../lib/bootLoader";
+import { whenEngaged } from "../../lib/whenEngaged";
+import TigerMark from "./TigerMark";
 import { asset } from "../../lib/assets";
 import { CHAPTER_POSTERS } from "../story/posters";
 import { NO_3D_REASONS, sceneModeFor, use3DSupport, useSceneField } from "./sceneHooks";
@@ -31,7 +35,7 @@ export default function SceneHost() {
   const ready = useSceneField("ready");
   const failed = useSceneField("failed");
   const chapter = useSceneField("chapter");
-  const bootPhase = useSyncExternalStore(bootStore.subscribe, () => bootStore.getState().phase, () => "loading");
+  const boot = useSyncExternalStore(bootStore.subscribe, bootStore.getState, bootStore.getState);
 
   useEffect(() => {
     setScene({ mode, shell });
@@ -47,21 +51,24 @@ export default function SceneHost() {
       skip3DSteps(NO_3D_REASONS[support.reason] || "Memakai ilustrasi 2D");
       return undefined;
     }
-    const begin = () => startLoading().then((C) => C && setStageComponent(() => C));
-    if (mode !== "off") {
-      begin();
-      return undefined;
-    }
-    if ("requestIdleCallback" in window) {
-      const id = window.requestIdleCallback(begin, { timeout: 3000 });
-      return () => window.cancelIdleCallback(id);
-    }
-    const id = setTimeout(begin, 1200);
-    return () => clearTimeout(id);
-  }, [mode, support]);
+    const begin = () => {
+      if (!scene.webglChecked) {
+        // First run: check the GPU now (not during the first render). If 3D is
+        // not possible, `support` flips and this effect skips to the 2D art.
+        const checked = canRender3D(undefined, { probe: true });
+        setScene({ webglChecked: true });
+        if (!checked.ok) return;
+      }
+      startLoading().then((C) => C && setStageComponent(() => C));
+    };
+    // Pages with MAUNG load him once the visitor engages or the page settles;
+    // other pages warm the chunk up later so a visit to the story is instant.
+    return whenEngaged(begin, { delay: mode !== "off" ? 2500 : 6000 });
+  }, [mode, support.ok, support.reason]);
 
   const live = ready && !failed;
   const fallback = !support.ok || failed;
+  const progress = Math.round(bootProgress(boot) * 100);
 
   return (
     <>
@@ -76,8 +83,15 @@ export default function SceneHost() {
           ))}
         </div>
       )}
+      {mode === "story" && !live && !fallback && (
+        <div className="scene-host__placeholder">
+          <TigerMark size={132} animated />
+        </div>
+      )}
       {StageComponent && !fallback && <StageComponent />}
-      {mode !== "off" && !live && !fallback && bootPhase === "done" && <p className="scene-host__loading">Menyiapkan MAUNG 3D…</p>}
+      {mode !== "off" && !live && !fallback && boot.phase === "done" && boot.steps.engine.status !== "pending" && (
+        <p className="scene-host__loading">Menyiapkan MAUNG 3D… {progress}%</p>
+      )}
       </div>
     </>
   );

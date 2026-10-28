@@ -16,8 +16,8 @@ const TITLES = {
   "/ai": "Asisten",
   "/settings": "Pengaturan",
 };
-/** Pages search engines may list; everything else is private or transient. */
-const INDEXABLE = new Set(["/", "/login", "/register"]);
+// Public pages search engines may list (the reset-password page carries one-time tokens: never indexed).
+const INDEXABLE = new Set(["/", "/login", "/register", "/forgot-password"]);
 
 function setMeta(selector, attr, value) {
   const el = document.head.querySelector(selector);

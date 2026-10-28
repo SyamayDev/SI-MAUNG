@@ -9,12 +9,13 @@ Panduan ini untuk pemilik project. Ikuti urutannya; setiap langkah menyebut cara
    - Hasil yang benar (tabel di bagian bawah): 3 baris `profiles`, `savings_goals`, `transactions`, kolom `rls_aktif = true`, `jumlah_policy` 3 / 4 / 4, `trigger_profil = true`.
    - File ini aman dijalankan berkali-kali dan tidak menghapus data.
 3. **Authentication → URL Configuration**
-   - **Site URL**: alamat utama aplikasi, mis. `https://si-maung.vercel.app/` (atau `https://syamaydev.github.io/SI-MAUNG/`).
+   - **Site URL**: alamat utama aplikasi, mis. `https://syamaydev.github.io/SI-MAUNG/` (atau `https://si-maung.vercel.app/`). **Bukan** `http://localhost:3000` (nilai bawaan project baru).
    - **Redirect URLs** (tambahkan semua yang dipakai):
      - `https://si-maung.vercel.app/**`
      - `https://syamaydev.github.io/SI-MAUNG/**`
      - `http://localhost:5173/**`
-     - `http://localhost:4173/SI-MAUNG/**`
+     - `https://si-maung-*-syamaydevs-projects.vercel.app/**` (deploy preview Vercel)
+     - `http://localhost:4173/**`
    - Tanpa ini, tautan konfirmasi email dan reset kata sandi mengarah ke alamat yang salah.
 4. **Authentication → Emails**
    - Layanan email bawaan Supabase hanya mengirim ke alamat **anggota tim project** dan dibatasi beberapa email per jam. Untuk pengguna umum, isi **SMTP Settings** (mis. Resend, Brevo, Gmail SMTP), **atau** matikan *Confirm email* di **Authentication → Sign In / Providers → Email** bila konfirmasi tidak diperlukan.
@@ -50,7 +51,8 @@ Cek: buka `/register`, daftar dengan email Anda sendiri → muncul layar "Cek em
    - `VITE_SUPABASE_PUBLISHABLE_KEY` = Publishable key
    - Jangan isi `VITE_BASE_PATH` (Vercel otomatis memakai `/`).
    - Setelah mengubah env vars, lakukan **Redeploy** (env dibaca saat build).
-3. Build: `npm run build`, output `dist` (sudah diatur di [`vercel.json`](../vercel.json), termasuk rewrite SPA sehingga refresh di `/login` atau `/transactions` tidak 404).
+   - Status 28 Okt 2026: kedua variabel sudah ditambahkan ke project `si-maung` (Production, Preview, Development). Deploy production yang aktif dibangun **sebelum** itu, sehingga masih menampilkan “Konfigurasi Supabase belum diisi” sampai ada deploy baru (push ke `main` atau *Redeploy* di dashboard).
+3. Build: `npm run build`, output `dist` (sudah diatur di [`vercel.json`](../vercel.json), termasuk rewrite SPA sehingga refresh di `/login` atau `/transactions` tidak 404). `vercel.json` juga mematikan build otomatis untuk branch `gh-pages` (isinya hasil build GitHub Pages, bukan source — dulu selalu gagal).
 4. Cek: buka `https://si-maung.vercel.app/` → loader → landing; buka langsung `https://si-maung.vercel.app/login` → halaman masuk.
 
 ## 4. GitHub Pages (syamaydev.github.io/SI-MAUNG)

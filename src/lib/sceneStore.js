@@ -49,6 +49,12 @@ export const scene = {
   /** The 3D stage has drawn its first frame. */
   ready: false,
   failed: false,
+  /**
+   * The WebGL capability probe has run. It creates a GL context (expensive),
+   * so it waits until the stage is about to load; until then 3D is assumed
+   * possible and a light vector MAUNG stands in.
+   */
+  webglChecked: false,
 };
 
 export function setScene(patch) {

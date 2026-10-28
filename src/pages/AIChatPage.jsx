@@ -14,7 +14,7 @@ import { isAIParserEnabled, parseWithAI } from "../services/aiService";
 import { asset } from "../lib/assets";
 import { EXAMPLE_PHRASES } from "../lib/finance/examples";
 
-const SUGGESTIONS = [EXAMPLE_PHRASES[3], SUPPORTED_QUESTIONS[1], SUPPORTED_QUESTIONS[3]];
+const SUGGESTIONS = [EXAMPLE_PHRASES[3], SUPPORTED_QUESTIONS[1], SUPPORTED_QUESTIONS[3], SUPPORTED_QUESTIONS[5]];
 
 /**
  * "Asisten MAUNG" — honest about what it does: it turns sentences into
@@ -36,7 +36,7 @@ export default function AIChatPage() {
       id: 0,
       role: "assistant",
       kind: "text",
-      text: `Halo${displayName ? ` ${displayName.split(" ")[0]}` : ""}! Aku bisa mencatat transaksi dari kalimat (“beli bensin 50 ribu”) dan menjawab pertanyaan ringkas tentang catatanmu (“berapa pengeluaran bulan ini?”). Pertanyaan umum di luar itu belum bisa kujawab.`,
+      text: `Halo${displayName ? ` ${displayName.split(" ")[0]}` : ""}! Aku bisa mencatat transaksi dari kalimat sehari-hari (“beli bensin goceng”, “gajian dua juta setengah”) dan menjawab pertanyaan tentang catatanmu — total per periode, kategori, transaksi terakhir, rata-rata harian, sampai perbandingan dengan bulan lalu. Pertanyaan umum di luar keuanganmu belum bisa kujawab.`,
     },
   ]);
 
@@ -57,16 +57,25 @@ export default function AIChatPage() {
 
       if (parsed.intent === "transaction") {
         const review = Object.fromEntries(parsed.issues.map((i) => [i.field, i.message]));
-        push({ role: "assistant", kind: "proposal", text: "Ini yang kutangkap. Periksa dulu, lalu simpan:", draft: parsed.draft, review, suggestion: parsed.suggestion, status: "pending", source: "text" });
+        push({
+          role: "assistant",
+          kind: "proposal",
+          text: parsed.choices.length ? "Nominalnya bisa dibaca lebih dari satu cara. Pilih yang benar, lalu simpan:" : "Ini yang kutangkap. Periksa dulu, lalu simpan:",
+          draft: parsed.draft,
+          review,
+          choices: parsed.choices,
+          status: "pending",
+          source: "text",
+        });
       } else if (parsed.intent === "savings") {
         push({ role: "assistant", kind: "text", text: "Setoran tabungan dicatat langsung di tujuan tabunganmu.", link: { to: "/savings", label: "Buka Tabungan" } });
       } else {
         const answer = answerQuestion(input, { transactions, goals });
         if (answer.handled) {
-          push({ role: "assistant", kind: "text", text: answer.answer, basis: answer.basis });
+          push({ role: "assistant", kind: "text", text: answer.answer, basis: answer.basis, items: answer.items });
         } else if (isAIParserEnabled) {
           const ai = await parseWithAI(input);
-          if (ai.ok) push({ role: "assistant", kind: "proposal", text: "Dibaca oleh AI. Periksa semua isian:", draft: ai.draft, review: { amount: "Hasil AI, mohon periksa." }, status: "pending", source: "ai" });
+          if (ai.ok) push({ role: "assistant", kind: "proposal", text: "Dibaca oleh AI dan dicek ulang parser. Periksa semua isian:", draft: ai.draft, review: { amount: ai.note || "Hasil AI, mohon periksa." }, choices: ai.choices, status: "pending", source: "ai" });
           else push({ role: "assistant", kind: "text", text: "Maaf, aku belum mengerti. Coba sebutkan transaksi dengan nominalnya, atau tanyakan ringkasan catatanmu.", examples: true });
         } else {
           push({ role: "assistant", kind: "text", text: "Maaf, aku belum mengerti itu. Aku hanya bisa mencatat transaksi dan menjawab pertanyaan tentang catatanmu, misalnya:", examples: true });
@@ -123,9 +132,16 @@ export default function AIChatPage() {
       <div className="chat" role="log" aria-live="polite" aria-relevant="additions">
         {messages.map((m) => (
           <div key={m.id} className={`msg msg--${m.role}`}>
-            {m.role === "assistant" && <img className="msg__avatar" src={asset("images/logo-simang.webp")} alt="" width="36" height="32" />}
+            {m.role === "assistant" && <img className="msg__avatar" src={asset("images/logo-simang-192.webp")} alt="" width="36" height="32" />}
             <div className="msg__bubble">
               <p>{m.text}</p>
+              {m.items?.length > 0 && (
+                <ul className="msg__list">
+                  {m.items.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              )}
               {m.basis && <p className="msg__basis">Dasar: {m.basis}</p>}
               {m.link && (
                 <Link to={m.link.to} className="link-btn">
@@ -146,7 +162,7 @@ export default function AIChatPage() {
                   <TransactionEditor
                     initial={m.draft}
                     review={m.review}
-                    suggestion={m.suggestion}
+                    choices={m.choices}
                     onSubmit={(value) => save(m, value)}
                     secondary={
                       <Button onClick={() => patch(m.id, { status: "cancelled" })}>

@@ -21,7 +21,7 @@
 }
 
 .logo__accent {
-  margin-left: 0.2em;
+  margin-left: 0; /* a real space separates SI and MAUNG (read the same way by screen readers) */
   color: var(--c-accent-text);
 }
 

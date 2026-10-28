@@ -1,4 +1,4 @@
-﻿import { StrictMode } from "react";
+﻿import { StrictMode, startTransition } from "react";
 import { createRoot } from "react-dom/client";
 import "@fontsource-variable/fraunces/soft.css";
 import "@fontsource-variable/fraunces/soft-italic.css";
@@ -17,14 +17,21 @@ import { AuthProvider } from "./context/AuthContext.jsx";
 import { FinanceProvider } from "./context/FinanceContext.jsx";
 import { ToastProvider } from "./context/ToastContext.jsx";
 
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <AuthProvider>
-      <FinanceProvider>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
-      </FinanceProvider>
-    </AuthProvider>
-  </StrictMode>
-);
+const root = createRoot(document.getElementById("root"));
+
+// The first render is a transition, so React can yield to the browser while it
+// builds the page (no single long task on slow phones); the first-paint screen
+// in index.html stays up meanwhile.
+startTransition(() => {
+  root.render(
+    <StrictMode>
+      <AuthProvider>
+        <FinanceProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </FinanceProvider>
+      </AuthProvider>
+    </StrictMode>
+  );
+});

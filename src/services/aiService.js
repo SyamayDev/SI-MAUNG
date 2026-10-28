@@ -8,37 +8,49 @@
  * not a secret). The function's answer is untrusted input: it is validated
  * exactly like a typed form before the user can save it.
  */
-import { supabase } from "../lib/supabase";
+import { getSupabase } from "../lib/supabase";
 import { CATEGORY_VALUES } from "../lib/finance/categories";
 import { parseLocalISODate, toLocalISODate } from "../lib/finance/dates";
+import { reconcileAIAmount } from "../lib/finance/indonesianMoneyParser";
 
 export const isAIParserEnabled = import.meta.env.VITE_ENABLE_AI_PARSER === "true";
 
 const TIMEOUT_MS = 12000;
 const MAX_INPUT = 300;
 
+/**
+ * The model's answer is untrusted. Its amount is NEVER used on its own: the
+ * deterministic Indonesian money parser re-reads the same sentence and wins
+ * whenever it is sure (see reconcileAIAmount).
+ */
 function sanitizeDraft(raw, text) {
   if (!raw || typeof raw !== "object") return null;
   const type = raw.type === "income" || raw.type === "expense" ? raw.type : null;
-  const amount = Number(raw.amount);
   const today = toLocalISODate();
   const date = parseLocalISODate(raw.transaction_date) && raw.transaction_date <= today ? raw.transaction_date : today;
+  const checked = reconcileAIAmount(text, raw.amount);
   return {
-    type: type || "expense",
-    amount: Number.isFinite(amount) && amount > 0 ? Math.round(amount) : null,
-    category: CATEGORY_VALUES.includes(raw.category) ? raw.category : "other",
-    description: String(raw.description || text).replace(/\s+/g, " ").trim().slice(0, 120),
-    transaction_date: date,
-    notes: "",
+    draft: {
+      type: type || "expense",
+      amount: checked.amount,
+      category: CATEGORY_VALUES.includes(raw.category) ? raw.category : "other",
+      description: String(raw.description || text).replace(/\s+/g, " ").trim().slice(0, 120),
+      transaction_date: date,
+      notes: "",
+    },
     typeKnown: Boolean(type),
+    choices: checked.choices,
+    note: checked.note,
   };
 }
 
 /**
- * @returns {Promise<{ ok: true, draft } | { ok: false, reason: string }>}
+ * @returns {Promise<{ ok: true, draft, choices: number[], note: string } | { ok: false, reason: string }>}
  */
 export async function parseWithAI(text) {
-  if (!isAIParserEnabled || !supabase) return { ok: false, reason: "disabled" };
+  if (!isAIParserEnabled) return { ok: false, reason: "disabled" };
+  const supabase = await getSupabase().catch(() => null);
+  if (!supabase) return { ok: false, reason: "unavailable" };
   const input = String(text || "").trim().slice(0, MAX_INPUT);
   if (!input) return { ok: false, reason: "empty" };
 
@@ -48,7 +60,7 @@ export async function parseWithAI(text) {
 
   if (result?.timedOut) return { ok: false, reason: "timeout" };
   if (result?.error) return { ok: false, reason: "unavailable" };
-  const draft = sanitizeDraft(result?.data?.draft, input);
-  if (!draft || (!draft.amount && !draft.typeKnown)) return { ok: false, reason: "not-a-transaction" };
-  return { ok: true, draft };
+  const parsed = sanitizeDraft(result?.data?.draft, input);
+  if (!parsed || (!parsed.draft.amount && !parsed.choices.length && !parsed.typeKnown)) return { ok: false, reason: "not-a-transaction" };
+  return { ok: true, draft: parsed.draft, choices: parsed.choices, note: parsed.note };
 }

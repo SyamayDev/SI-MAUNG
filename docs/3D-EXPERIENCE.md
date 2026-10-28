@@ -48,30 +48,30 @@ Parameter: `yaw`, `pose` (`wave|listen|point|coin|cheer`), `expr` (`idle|listeni
 | `portrait` | `/login`, `/register`, `/forgot-password`, `/reset-password`, `/onboarding` | MAUNG dibingkai ke elemen `[data-maung-frame]` halaman itu (`useMaungFrame`), dengan pose per halaman: masuk = koin, daftar = menunjuk (sukses = sorak), lupa sandi = berpikir, atur ulang = melambai, onboarding = melambai → mendengar → menunjuk → sorak |
 | `off` | halaman lain | loop render berhenti; dunia tetap di memori sehingga kembali ke beranda instan |
 
-Halaman tanpa 3D tetap memulai pemuatan chunk 3D saat browser idle, sehingga kunjungan berikutnya ke beranda tidak menunggu.
+Halaman tanpa 3D memanaskan chunk 3D di latar belakang (setelah interaksi pertama atau ±6 dtk setelah halaman selesai dimuat), sehingga kunjungan berikutnya ke beranda tidak menunggu.
 
-## Loading berbasis kesiapan nyata
+## Loading progresif (konten dulu, MAUNG 3D menyusul)
 
-Urutan tampilan pertama:
+Sejak 28 Okt 2026 MAUNG 3D **tidak pernah menahan konten**. Urutannya:
 
-1. `index.html` langsung melukis loader statis (ikon harimau SVG inline, tema sudah benar) — tanpa menunggu JavaScript.
-2. React menggantinya dengan `LoadingScreen` (`src/components/scene/LoadingScreen.jsx`) yang membaca `src/lib/bootLoader.js`. Setiap langkah ditandai selesai oleh kode yang benar-benar mengerjakannya:
+1. `index.html` langsung melukis layar pembuka statis: ikon harimau SVG inline, wordmark, dan tagline besar “Catat uang, *cukup ngomong.*” (font sistem, tema sudah benar) — tanpa jaringan sama sekali.
+2. Begitu browser melaporkan paint pertama (Paint Timing; cadangan: dua animation frame / timer 800 ms), skrip kecil inline baru meminta CSS, modulepreload, dan entry JS (plugin `paintBeforeScripts` di `vite.config.js`). Biayanya satu frame, tetapi paint pertama tidak pernah berebut bandwidth dengan JavaScript.
+3. Render React pertama berjalan sebagai *transition* (`startTransition` di `src/main.jsx`), jadi bisa menyerahkan main thread ke browser. SDK Supabase (±200 KB) dimuat lewat `import()` (`getSupabase()` di `src/lib/supabase.js`): diunduh paralel sejak boot, tetapi dievaluasi di task-nya sendiri.
+4. `LoadingScreen` (`src/components/scene/LoadingScreen.jsx`) hanya menunggu sesi auth dicek (maks. 8 dtk; Supabase lambat/mati → lanjut sebagai tamu), lalu halaman tampil dan bisa dipakai.
+5. Di tempat MAUNG akan berdiri, tampil MAUNG vektor ringan (`TigerMark`, SVG) — bukan kanvas kosong.
+6. MAUNG 3D mulai dimuat pada **interaksi pertama** (scroll, sentuh, gerak pointer, tombol) **atau ±2,5 dtk setelah halaman selesai dimuat saat browser idle** (`src/lib/whenEngaged.js`). Baru saat itu pemeriksaan WebGL2 dijalankan (membuat konteks GPU itu mahal — dulu inilah long task terbesar saat render pertama). Bila 3D tidak mungkin, ilustrasi 2D dipakai.
+7. Langkah 3D tetap dilaporkan oleh kode yang mengerjakannya (`src/lib/bootLoader.js`) dan ditampilkan kecil di pojok panggung: “Menyiapkan MAUNG 3D… 45%”.
 
-| Langkah | Ditandai oleh | Progres |
+| Langkah 3D | Ditandai oleh | Progres |
 | --- | --- | --- |
-| Menyiapkan pengalaman SI-MAUNG | sesi auth selesai dicek (maks. 8 dtk; Supabase lambat/mati → lanjut sebagai tamu) | selesai/belum |
-| Memuat mesin 3D (three.js) | `src/lib/load3d.js` mengunduh chunk `Stage` yang tercantum di meta `simaung:3d` (disuntikkan saat build oleh `vite.config.js`) dengan pembaca streaming → **byte nyata** "x / y MB"; lalu `import()` dari cache | byte |
+| Memuat mesin 3D (three.js) | `src/lib/load3d.js` mengunduh chunk `Stage` yang tercantum di meta `simaung:3d` (disuntikkan saat build) dengan pembaca streaming → **byte nyata**; lalu `import()` dari cache | byte |
 | Membangun model & material MAUNG | `buildWorld()` di `Stage.jsx` | selesai/belum |
 | Menyiapkan pencahayaan & scene 3D | dunia & lampu ditambahkan ke scene | selesai/belum |
 | Mengompilasi shader | `renderer.compileAsync()` | selesai/belum |
-| Siap digunakan | frame pertama benar-benar dirender | selesai/belum |
+| Siap digunakan | frame pertama benar-benar dirender → kanvas memudar masuk menggantikan MAUNG vektor | selesai/belum |
 
-Persentase adalah bobot langkah yang selesai + byte nyata dari langkah unduhan — tidak ada timer palsu. Bila ukuran tidak diketahui, bilah menjadi *indeterminate*. Tidak ada klaim "mengunduh GLB" karena memang tidak ada.
-
-- Loader hanya menahan halaman yang menampilkan MAUNG. Halaman lain (mis. `/transactions`) selesai begitu auth siap; 3D disiapkan di latar belakang.
-- Setelah 5 dtk muncul tombol **Lewati**; setelah 25 dtk loader menyerah otomatis. Gagal (unduhan/WebGL) → pesan jelas dengan **Coba lagi** / **Lanjut** dan fallback 2D.
-- Selama loader tampil, aplikasi di belakangnya `inert` (tidak bisa difokus tidak sengaja). Transisi keluar 650 ms; `prefers-reduced-motion` mematikan animasinya.
-- Hasil: frame pertama aplikasi sudah memuat MAUNG 3D siap — poster 2D bukan frame normal.
+- Penyiapan 3D yang macet lebih dari 25 dtk setelah dimulai diserahkan ke ilustrasi 2D. Tombol **Lanjut sekarang** muncul bila cek sesi auth lebih dari 5 dtk.
+- Alasan perubahan: dulu loader layar penuh menunggu frame 3D pertama, sehingga di ponsel (simulasi Lighthouse: 4G lambat, CPU 4×) teks baru terlihat setelah ±4,5 dtk dan skor Performance mobile 73–81. Sekarang teks & tombol tampil lebih dulu dan semua halaman publik mendapat 100 (lihat README).
 
 ## Tema terang / gelap
 
@@ -112,7 +112,7 @@ Kamera dibingkai otomatis: tiap babak mendefinisikan target, ukuran kotak yang h
 
 ## Performa, reduced motion & fallback
 
-- Host three.js vanilla (`src/three/Stage.jsx`), chunk terpisah ±162 KB gzip. Loop `setAnimationLoop` hanya berjalan bila mode bukan `off`, cerita terlihat (mode story), dan tab aktif. DPR maks 1.75/1.5/1 per tier perangkat, turun 0.25 bila rata-rata frame > 33 ms. Tanpa shadow map (bayangan kontak dari tekstur), tanpa environment map (PMREM dulu memblokir main thread ±0,9 dtk saat driver mengompilasi shadernya; kini lampu langit/tanah + lampu depan memberi tampilan lembut yang sama), tone mapping Neutral. Satu konteks WebGL saja (konteks dari pemeriksaan WebGL2 di `lib/device.js` diserahkan ke renderer), loop render baru jalan setelah `compileAsync` selesai, dan setup dimulai saat browser idle sehingga render pertama halaman tidak menunggu GPU. Ukuran tiap langkah tercatat sebagai User Timing `simaung:*` di DevTools.
+- Host three.js vanilla (`src/three/Stage.jsx`), chunk terpisah ±162 KB gzip. Loop `setAnimationLoop` hanya berjalan bila mode bukan `off`, cerita terlihat (mode story), dan tab aktif. DPR maks 1.75/1.5/1 per tier perangkat, turun 0.25 bila rata-rata frame > 33 ms. Tanpa shadow map (bayangan kontak dari tekstur), tanpa environment map (PMREM dulu memblokir main thread ±0,9 dtk saat driver mengompilasi shadernya; kini lampu langit/tanah + lampu depan memberi tampilan lembut yang sama), tone mapping Neutral. Satu konteks WebGL saja (konteks dari pemeriksaan WebGL2 di `lib/device.js` diserahkan ke renderer), loop render baru jalan setelah `compileAsync` selesai, dan setup dimulai setelah interaksi pertama atau saat halaman sudah tenang, sehingga render pertama halaman tidak pernah menunggu GPU. Ukuran tiap langkah tercatat sebagai User Timing `simaung:*` di DevTools.
 - **`prefers-reduced-motion: reduce`**: MAUNG 3D tetap tampil tetapi **diam** — waktu animasi dibekukan, tanpa napas/kedip/ekor/lambaian, kamera langsung ke posisi tanpa transisi, dan koin tidak bergerak. Diuji: dua tangkapan berjarak 1,2 dtk identik piksel-per-piksel; saat preferensi dimatikan, frame kembali bergerak.
 - Fallback 2D (poster maskot per babak / ilustrasi di halaman auth) **hanya** bila 3D tidak mungkin: tanpa WebGL, renderer software, error/`webglcontextlost`, gagal unduh, atau Pengaturan → Scene 3D → Mati. `?3d=on` / `?3d=off` untuk pengujian.
 - Pembersihan saat unmount: semua geometri, material, tekstur, render target, renderer (+`forceContextLoss`) dan listener/observer. Diuji: 6 kali bolak-balik rute tetap 1 canvas.

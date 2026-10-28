@@ -5,15 +5,17 @@
  * write only succeeds if the stored amount is still the one we read — so two
  * tabs can never overwrite each other's contributions.
  */
-import { supabase } from "../lib/supabase";
+import { getSupabase } from "../lib/supabase";
 
 const TABLE = "savings_goals";
 
 export async function listGoals(userId) {
+  const supabase = await getSupabase();
   return supabase.from(TABLE).select("*").eq("user_id", userId).order("created_at", { ascending: false });
 }
 
 export async function createGoal(userId, value) {
+  const supabase = await getSupabase();
   return supabase
     .from(TABLE)
     .insert({ user_id: userId, name: value.name, target_amount: value.target_amount, deadline: value.deadline, current_amount: 0 })
@@ -22,6 +24,7 @@ export async function createGoal(userId, value) {
 }
 
 export async function updateGoal(userId, id, value) {
+  const supabase = await getSupabase();
   const result = await supabase
     .from(TABLE)
     .update({ name: value.name, target_amount: value.target_amount, deadline: value.deadline })
@@ -34,6 +37,7 @@ export async function updateGoal(userId, id, value) {
 }
 
 export async function deleteGoal(userId, id) {
+  const supabase = await getSupabase();
   const result = await supabase.from(TABLE).delete().eq("id", id).eq("user_id", userId).select("id");
   if (!result.error && !result.data?.length) return { data: null, error: { message: "not-found", code: "NOT_FOUND" } };
   return result;
@@ -41,6 +45,7 @@ export async function deleteGoal(userId, id) {
 
 /** Add `delta` (negative = withdraw) to a goal's current_amount. */
 export async function contributeToGoal(userId, goalId, delta, attempts = 3) {
+  const supabase = await getSupabase();
   for (let i = 0; i < attempts; i++) {
     const { data: goal, error } = await supabase
       .from(TABLE)

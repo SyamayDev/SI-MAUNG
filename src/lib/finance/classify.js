@@ -8,7 +8,7 @@ import { hasPhrase } from "./text.js";
 const INCOME_WORDS = {
   pemasukan: 3, pendapatan: 3, gaji: 3, gajian: 3, thr: 3, terima: 2, menerima: 2, diterima: 2, nerima: 2,
   dapat: 2, dapet: 2, mendapat: 2, mendapatkan: 2, bonus: 2, honor: 2, upah: 2, komisi: 2, dividen: 2,
-  cashback: 2, refund: 2, jual: 2, menjual: 2, terjual: 2, laku: 1, untung: 1, dikasih: 2, dikasi: 2,
+  cashback: 2, jual: 2, menjual: 2, terjual: 2, laku: 1, untung: 1, dikasih: 2, dikasi: 2,
   dikirimi: 2, diberi: 2, dibayar: 2, transferan: 2, freelance: 1, masuk: 1, lembur: 1, insentif: 2,
   hadiah: 1, warisan: 2, kembalian: 1,
 };
@@ -19,10 +19,18 @@ const EXPENSE_WORDS = {
   langganan: 1, tagihan: 2, pulsa: 1, tiket: 1, nonton: 1, berobat: 1, ngasih: 2, kasih: 1, kirim: 1,
   iuran: 2, arisan: 1, spp: 2, ukt: 2, kos: 1, kost: 1, pesan: 1, order: 1, checkout: 2,
 };
-const INCOME_PHRASES = [["uang masuk", 3], ["transfer dari", 2], ["kiriman dari", 2], ["uang saku", 1]];
-const EXPENSE_PHRASES = [["uang keluar", 3], ["transfer ke", 2], ["kirim ke", 2], ["top up", 2], ["kirim uang", 2]];
+const INCOME_PHRASES = [
+  ["uang masuk", 3], ["transfer masuk", 3], ["dana masuk", 3], ["masuk rekening", 2], ["transfer dari", 2],
+  ["kiriman dari", 2], ["uang saku", 1],
+];
+const EXPENSE_PHRASES = [["uang keluar", 3], ["transfer keluar", 3], ["transfer ke", 2], ["kirim ke", 2], ["top up", 2], ["kirim uang", 2]];
 // Phrases that contain money words but mean something else.
 const NOISE = [/\bterima ?kasih\b/g, /\bmakasih\b/g, /\bmasuk angin\b/g, /\bkeluar rumah\b/g];
+
+// Refunds: money coming back to the user is income; a refund the user pays out is an expense.
+const REFUND_RE = /\b(refund|pengembalian dana|uang kembali|dana kembali)\b/;
+const REFUND_OUT_RE = /\b(refund ke|kasih refund|beri refund|bayar refund|kirim refund|transfer refund|balikin uang|kembalikan uang|mengembalikan uang|ngembaliin uang)\b/;
+const REFUND_IN_RE = /\b((dapat|dapet|terima|nerima|menerima) (uang )?refund|refund (masuk|cair|diterima|balik)|uang kembali|dana kembali)\b/;
 
 function score(normalized, words, phrases) {
   let total = 0;
@@ -42,10 +50,17 @@ function score(normalized, words, phrases) {
   return { total, matched };
 }
 
-/** @returns {{ type: "income"|"expense", confidence: number, explicit: boolean, matched: string[] }} */
+/** @returns {{ type: "income"|"expense", confidence: number, explicit: boolean, matched: string[], refund?: boolean }} */
 export function detectType(normalized) {
   let text = normalized;
   for (const re of NOISE) text = text.replace(re, " ");
+
+  if (REFUND_RE.test(text)) {
+    if (REFUND_OUT_RE.test(text)) return { type: "expense", confidence: 0.85, explicit: true, matched: ["refund"], refund: true };
+    if (REFUND_IN_RE.test(text)) return { type: "income", confidence: 0.85, explicit: true, matched: ["refund"], refund: true };
+    // "refund pembelian 50 ribu": most likely money back, but the user confirms the direction
+    return { type: "income", confidence: 0.6, explicit: false, matched: ["refund"], refund: true };
+  }
   const income = score(text, INCOME_WORDS, INCOME_PHRASES);
   const expense = score(text, EXPENSE_WORDS, EXPENSE_PHRASES);
 

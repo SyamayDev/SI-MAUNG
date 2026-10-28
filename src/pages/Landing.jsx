@@ -35,7 +35,7 @@ export default function Landing() {
         Lewati ke konten
       </a>
       <header className="landing__bar on-stage">
-        <Link to="/" className="landing__brand" aria-label="SI-MAUNG — Beranda">
+        <Link to="/" className="landing__brand" aria-label="SI MAUNG — Beranda">
           <Logo size={36} />
         </Link>
         <div className="landing__actions">

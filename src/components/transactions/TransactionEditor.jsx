@@ -20,9 +20,11 @@ const TYPE_OPTIONS = [
 /**
  * Transaction form used for manual entry, reviewing a parsed sentence, and edits.
  * `review` = { field: message } hints from the parser that the user should check.
+ * `choices` = amounts the parser could not decide between ("dua juta lima ratus"):
+ *   the amount stays empty until the user picks one or types it.
  * `onSubmit(value)` must resolve to { error?: string }.
  */
-export default function TransactionEditor({ initial, review = {}, suggestion = null, submitLabel = "Simpan transaksi", onSubmit, secondary }) {
+export default function TransactionEditor({ initial, review = {}, choices = [], submitLabel = "Simpan transaksi", onSubmit, secondary }) {
   const [form, setForm] = useState(() => ({ ...emptyDraft(), ...initial, notes: initial?.notes || "" }));
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -68,21 +70,36 @@ export default function TransactionEditor({ initial, review = {}, suggestion = n
       <Segmented label="Jenis transaksi" value={form.type} onChange={(v) => set("type", v)} options={TYPE_OPTIONS} className="tx-editor__type" id="tx-type" />
       {hint("type") && <p className="field__review">{hint("type")}</p>}
 
+      {choices.length > 0 && (
+        <fieldset className="tx-editor__choices">
+          <legend className="field__label">Nominal yang dimaksud?</legend>
+          <div className="tx-editor__choice-row">
+            {choices.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className="chip tx-editor__choice"
+                aria-pressed={form.amount === c}
+                onClick={() => set("amount", c)}
+                data-autofocus={choices[0] === c && !form.amount ? true : undefined}
+              >
+                {formatRupiah(c)}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      )}
+
       <MoneyInput
         id="tx-amount"
-        label="Nominal"
+        label={choices.length ? "Atau ketik nominalnya" : "Nominal"}
         value={form.amount}
         onChange={(v) => set("amount", v)}
         placeholder="0"
         error={errors.amount}
         review={hint("amount")}
-        data-autofocus={form.amount ? undefined : true}
+        data-autofocus={form.amount || choices.length ? undefined : true}
       />
-      {suggestion && !touched.amount && form.amount !== suggestion && (
-        <button type="button" className="chip chip--amber tx-editor__suggest" onClick={() => set("amount", suggestion)}>
-          Ganti ke {formatRupiah(suggestion)}
-        </button>
-      )}
 
       <Input
         id="tx-description"

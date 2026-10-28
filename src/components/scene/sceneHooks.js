@@ -21,10 +21,15 @@ export function sceneModeFor(pathname) {
   return "off";
 }
 
-/** Can this device show the live 3D MAUNG right now (reacts to the Settings switch)? */
+/**
+ * Can this device show the live 3D MAUNG right now (reacts to the Settings
+ * switch)? Before the WebGL probe has run (SceneHost runs it just before
+ * loading the stage) the answer is an optimistic `{ ok: true, pending: true }`.
+ */
 export function use3DSupport() {
   const { scene3d } = usePreferences();
-  return useMemo(() => canRender3D(scene3d), [scene3d]);
+  const checked = useSceneField("webglChecked");
+  return useMemo(() => canRender3D(scene3d, { probe: checked }), [scene3d, checked]);
 }
 
 export function useSceneField(key) {

@@ -6,6 +6,7 @@ import Logo from "../components/ui/Logo";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import FullscreenToggle from "../components/ui/FullscreenToggle";
 import { useMaung3D } from "../components/scene/sceneHooks";
+import TigerMark from "../components/scene/TigerMark";
 import { useMaungFrame } from "../components/scene/useMaungFrame";
 import { useAuth } from "../context/AuthContext";
 import { asset } from "../lib/assets";
@@ -33,7 +34,7 @@ export default function Onboarding() {
   const [error, setError] = useState("");
   const frameRef = useRef(null);
   useMaungFrame(frameRef, STEPS[step].pose);
-  const { available } = useMaung3D();
+  const { available, live } = useMaung3D();
 
   const finish = async () => {
     if (busy) return;
@@ -69,6 +70,11 @@ export default function Onboarding() {
       <main className="onboarding__body">
         <div className="onboarding__art" ref={frameRef} data-maung-frame>
           {!available && <img src={asset(STEPS[step].art)} alt="" width="320" height="420" key={step} />}
+          {available && !live && (
+            <span className="maung-placeholder" aria-hidden="true">
+              <TigerMark size={150} animated />
+            </span>
+          )}
         </div>
         <div className="onboarding__card panel">
           {step === 0 && (
